@@ -78,7 +78,7 @@ export default function Header() {
       <header className={`sticky top-0 z-30 transition-all duration-500 ${
         scrolled
           ? 'bg-white shadow-md'
-          : 'bg-transparent'
+          : 'bg-black/30 backdrop-blur-[2px]'
       }`}>
         <div className="max-w-screen-xl mx-auto px-5 lg:px-10">
 
@@ -90,8 +90,7 @@ export default function Header() {
               <img
                 src="/logo.png"
                 alt="MR"
-                className="h-[58px] w-auto object-contain group-hover:scale-105 transition-all duration-300"
-                style={{ filter: scrolled ? 'none' : 'brightness(0) invert(1)' }}
+                className="h-[58px] w-auto object-contain group-hover:scale-105 transition-all duration-300 rounded-sm"
               />
               <div className="flex flex-col leading-tight">
                 <span
@@ -152,8 +151,7 @@ export default function Header() {
 
             {/* Mobile center logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="MR" className="h-11 w-auto object-contain"
-                style={{ filter: scrolled ? 'none' : 'brightness(0) invert(1)' }} />
+              <img src="/logo.png" alt="MR" className="h-11 w-auto object-contain rounded-sm" />
               <span className={`text-lg font-semibold tracking-wide ${scrolled ? 'text-primary' : 'text-white'}`}
                 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
                 Meena Rajwada

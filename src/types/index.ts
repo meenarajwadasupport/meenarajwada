@@ -6,8 +6,8 @@ export interface Product {
   price: number
   mrp: number
   material: string
-  brand_id?: string
   category_id?: string
+  category_slug?: string
   images: string[]
   colors: string[]
   sizes: string[]
@@ -32,27 +32,27 @@ export interface Category {
 
 export interface Order {
   id: string
-  order_number: string
   user_id?: string
-  total_amount: number
-  payment_status: 'pending' | 'paid' | 'failed'
-  order_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  payment_session_id?: string
-  cf_order_id?: string
-  tracking_id?: string
-  courier?: string
   customer_name: string
   customer_email: string
   customer_phone: string
-  delivery_full_name: string
-  delivery_phone: string
-  delivery_address: string
-  delivery_city: string
-  delivery_state: string
-  delivery_pincode: string
+  shipping_address?: {
+    address: string
+    city: string
+    state: string
+    pincode: string
+  }
+  subtotal: number
+  shipping_amount: number
+  total_amount: number
+  status: string
+  payment_status: string
+  cashfree_order_id?: string
+  tracking_id?: string
+  courier?: string
+  dispatch_email_sent?: boolean
   created_at: string
-  fulfilled_at?: string
-  items?: OrderItem[]
+  order_items?: OrderItem[]
 }
 
 export interface OrderItem {
@@ -60,25 +60,26 @@ export interface OrderItem {
   order_id: string
   product_id: string
   product_name: string
+  size?: string
   quantity: number
   price: number
-  color?: string
-  size?: string
-  image?: string
 }
 
 export interface CartItem {
-  product: Product
+  product_id: string
+  product?: Product
+  size: string
   quantity: number
-  color?: string
-  size?: string
+  price: number
 }
 
 export interface Profile {
   id: string
   full_name: string
+  email?: string
   phone?: string
-  is_admin: boolean
+  role: 'customer' | 'admin'
+  avatar_url?: string
   created_at: string
 }
 
@@ -87,12 +88,10 @@ export interface Address {
   user_id: string
   full_name: string
   phone: string
-  address_line1: string
-  address_line2?: string
+  address: string
   city: string
   state: string
   pincode: string
-  country: string
   is_default: boolean
 }
 
@@ -111,7 +110,7 @@ export interface HeroSlide {
 export interface Testimonial {
   id: string
   customer_name: string
-  location: string
+  location?: string
   review: string
   rating: number
   avatar?: string
@@ -123,10 +122,9 @@ export interface BlogPost {
   id: string
   slug: string
   title: string
-  excerpt: string
-  content: string
-  cover_image: string
-  author: string
-  published_at: string
+  excerpt?: string
+  content?: string
+  cover_image?: string
   is_published: boolean
+  created_at: string
 }

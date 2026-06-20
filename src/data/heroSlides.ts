@@ -25,7 +25,7 @@ export const fallbackHeroSlides: HeroSlide[] = [
     id: '3',
     title: 'Your Vision.\nOur Craftsmanship.',
     subtitle: 'Create a one-of-a-kind piece designed just for you.',
-    image_url: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1600&q=90&auto=format&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1600&q=90&auto=format&fit=crop',
     cta_text: 'Customize Your Design',
     cta_url: '/customize',
     display_order: 3,

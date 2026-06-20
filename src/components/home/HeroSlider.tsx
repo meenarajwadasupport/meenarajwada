@@ -28,18 +28,18 @@ export default function HeroSlider() {
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {slides.map(slide => (
-            <div key={slide.id} className="relative flex-[0_0_100%] h-screen min-h-[640px]">
+            <div key={slide.id} className="relative flex-[0_0_100%] h-[88vh] min-h-[580px]">
               <img
                 src={slide.image_url}
                 alt={slide.title}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover object-center"
               />
               {/* Dark gradient overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
 
-              {/* Slide content — centered vertically, offset for header */}
+              {/* Slide content — vertically centered */}
               <div className="absolute inset-0 flex items-center">
-                <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full pt-24">
+                <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full">
                   <div className="max-w-xl">
                     <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-white/70 mb-4">
                       Handcrafted with Love

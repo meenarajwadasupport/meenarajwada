@@ -35,23 +35,19 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80)
+    const onScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', onScroll)
-    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const textClass = scrolled ? 'text-foreground/80 hover:text-primary' : 'text-white/90 hover:text-white'
-  const iconClass = scrolled ? 'text-foreground/60 hover:text-primary' : 'text-white/90 hover:text-white'
 
   const NavItem = ({ link }: { link: any }) =>
     link.children ? (
       <div className="relative group">
-        <button className={`flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors py-4 ${textClass}`}>
+        <button className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/75 hover:text-primary transition-colors py-5">
           {link.label}
-          <ChevronDown className="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" />
+          <ChevronDown className="w-3 h-3 opacity-50 group-hover:rotate-180 transition-transform duration-200" />
         </button>
-        <div className="absolute top-full left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-border/60 py-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 mt-1">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-border/50 py-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 mt-0">
           {link.children.map((child: any) => (
             <NavLink key={child.href} to={child.href}
               className="block px-5 py-2.5 text-sm text-foreground/70 hover:text-primary hover:bg-background transition-colors font-medium">
@@ -63,10 +59,8 @@ export default function Header() {
     ) : (
       <NavLink to={link.href} end={link.href === '/'}
         className={({ isActive }) =>
-          `text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors py-4 ${
-            isActive
-              ? (scrolled ? 'text-primary' : 'text-white')
-              : textClass
+          `text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors py-5 ${
+            isActive ? 'text-primary' : 'text-foreground/75 hover:text-primary'
           }`
         }>
         {link.label}
@@ -75,53 +69,39 @@ export default function Header() {
 
   return (
     <>
-      <header className={`sticky top-0 z-30 transition-all duration-500 ${
-        scrolled
-          ? 'bg-white shadow-md'
-          : 'bg-black/30 backdrop-blur-[2px]'
-      }`}>
+      <header className={`sticky top-0 z-30 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm border-b border-border/30'}`}>
         <div className="max-w-screen-xl mx-auto px-5 lg:px-10">
 
           {/* ── DESKTOP ── */}
-          <div className="hidden lg:grid grid-cols-[auto_1fr_auto] items-center h-[72px] gap-8">
+          <div className="hidden lg:grid grid-cols-[200px_1fr_auto] items-center h-[76px] gap-6">
 
-            {/* LEFT — Logo + Brand name */}
-            <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
+            {/* LEFT — Logo only (PNG already contains brand name) */}
+            <Link to="/" className="flex items-center flex-shrink-0 group">
               <img
                 src="/logo.png"
-                alt="MR"
-                className="h-[58px] w-auto object-contain group-hover:scale-105 transition-all duration-300 rounded-sm"
+                alt="Meena Rajwada"
+                className="h-[68px] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                style={{ mixBlendMode: 'multiply' }}
               />
-              <div className="flex flex-col leading-tight">
-                <span
-                  className={`text-[22px] font-semibold tracking-[0.04em] leading-none transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
-                  style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}>
-                  Meena Rajwada
-                </span>
-                <span className={`text-[9px] font-medium tracking-[0.3em] uppercase mt-1 transition-colors duration-300 ${scrolled ? 'text-foreground/45' : 'text-white/55'}`}
-                  style={{ fontFamily: "'Jost', 'Lato', sans-serif" }}>
-                  Handcrafted Jewellery
-                </span>
-              </div>
             </Link>
 
             {/* CENTER — Navigation */}
-            <nav className="flex items-center justify-center gap-6">
+            <nav className="flex items-center justify-center gap-7">
               {navLinks.map(link => <NavItem key={link.label} link={link} />)}
             </nav>
 
             {/* RIGHT — Icons */}
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <button onClick={() => setSearchOpen(true)}
-                className={`p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Search">
+                className="p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background" aria-label="Search">
                 <Search className="w-[18px] h-[18px]" />
               </button>
               <button onClick={() => navigate(user ? '/account' : '/auth')}
-                className={`p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Account">
+                className="p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background" aria-label="Account">
                 <User className="w-[18px] h-[18px]" />
               </button>
               <Link to="/wishlist"
-                className={`relative p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Wishlist">
+                className="relative p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background" aria-label="Wishlist">
                 <Heart className="w-[18px] h-[18px]" />
                 {wishlistCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold">
@@ -130,7 +110,7 @@ export default function Header() {
                 )}
               </Link>
               <button onClick={() => setCartOpen(true)}
-                className={`relative p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Cart">
+                className="relative p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background" aria-label="Cart">
                 <ShoppingBag className="w-[18px] h-[18px]" />
                 {itemCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold">
@@ -143,22 +123,14 @@ export default function Header() {
 
           {/* ── MOBILE ── */}
           <div className="lg:hidden flex items-center justify-between h-16">
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
+            <button onClick={() => setMobileOpen(!mobileOpen)}
               className="p-2 text-foreground/70 hover:text-primary transition-colors">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-
-            {/* Mobile center logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="MR" className="h-11 w-auto object-contain rounded-sm" />
-              <span className={`text-lg font-semibold tracking-wide ${scrolled ? 'text-primary' : 'text-white'}`}
-                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
-                Meena Rajwada
-              </span>
+            <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+              <img src="/logo.png" alt="Meena Rajwada" className="h-12 w-auto object-contain"
+                style={{ mixBlendMode: 'multiply' }} />
             </Link>
-
-            {/* Mobile right icons */}
             <div className="flex items-center gap-0.5">
               <button onClick={() => setSearchOpen(true)} className="p-2 text-foreground/70 hover:text-primary">
                 <Search className="w-5 h-5" />
@@ -175,7 +147,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile menu dropdown */}
+        {/* Mobile menu */}
         {mobileOpen && (
           <div className="lg:hidden border-t border-border bg-white shadow-lg">
             <div className="px-4 py-3 space-y-0.5">
@@ -186,8 +158,7 @@ export default function Header() {
                       {link.label}
                     </p>
                     {link.children.map(child => (
-                      <NavLink key={child.href} to={child.href}
-                        onClick={() => setMobileOpen(false)}
+                      <NavLink key={child.href} to={child.href} onClick={() => setMobileOpen(false)}
                         className="block px-3 py-2 text-sm text-foreground/70 hover:text-primary font-medium">
                         {child.label}
                       </NavLink>
@@ -206,8 +177,7 @@ export default function Header() {
                 )
               )}
               <div className="pt-3 border-t border-border flex gap-2 mt-2">
-                <button
-                  onClick={() => { navigate(user ? '/account' : '/auth'); setMobileOpen(false) }}
+                <button onClick={() => { navigate(user ? '/account' : '/auth'); setMobileOpen(false) }}
                   className="flex-1 py-2.5 text-[11px] font-semibold uppercase tracking-widest border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
                   {user ? 'My Account' : 'Sign In'}
                 </button>

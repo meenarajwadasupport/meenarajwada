@@ -24,7 +24,7 @@ export default function HeroSlider() {
   if (!slides.length) return null
 
   return (
-    <section className="relative overflow-hidden -mt-[72px]">
+    <section className="relative overflow-hidden">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {slides.map(slide => (

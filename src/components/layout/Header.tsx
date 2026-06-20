@@ -35,15 +35,19 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50)
+    const onScroll = () => setScrolled(window.scrollY > 80)
     window.addEventListener('scroll', onScroll)
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  const textClass = scrolled ? 'text-foreground/80 hover:text-primary' : 'text-white/90 hover:text-white'
+  const iconClass = scrolled ? 'text-foreground/60 hover:text-primary' : 'text-white/90 hover:text-white'
 
   const NavItem = ({ link }: { link: any }) =>
     link.children ? (
       <div className="relative group">
-        <button className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/80 hover:text-primary transition-colors py-4">
+        <button className={`flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors py-4 ${textClass}`}>
           {link.label}
           <ChevronDown className="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" />
         </button>
@@ -60,7 +64,9 @@ export default function Header() {
       <NavLink to={link.href} end={link.href === '/'}
         className={({ isActive }) =>
           `text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors py-4 ${
-            isActive ? 'text-primary' : 'text-foreground/80 hover:text-primary'
+            isActive
+              ? (scrolled ? 'text-primary' : 'text-white')
+              : textClass
           }`
         }>
         {link.label}
@@ -69,10 +75,10 @@ export default function Header() {
 
   return (
     <>
-      <header className={`sticky top-0 z-30 transition-all duration-300 ${
+      <header className={`sticky top-0 z-30 transition-all duration-500 ${
         scrolled
-          ? 'bg-white/98 backdrop-blur-sm shadow-md'
-          : 'bg-white shadow-sm'
+          ? 'bg-white shadow-md'
+          : 'bg-transparent'
       }`}>
         <div className="max-w-screen-xl mx-auto px-5 lg:px-10">
 
@@ -88,11 +94,11 @@ export default function Header() {
               />
               <div className="flex flex-col leading-tight">
                 <span
-                  className="font-serif text-xl font-bold tracking-wide text-primary leading-none"
+                  className={`font-serif text-xl font-bold tracking-wide leading-none transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                   Meena Rajwada
                 </span>
-                <span className="text-[9px] font-semibold tracking-[0.28em] uppercase text-foreground/50 mt-0.5">
+                <span className={`text-[9px] font-semibold tracking-[0.28em] uppercase mt-0.5 transition-colors duration-300 ${scrolled ? 'text-foreground/50' : 'text-white/60'}`}>
                   Handcrafted Jewellery
                 </span>
               </div>
@@ -105,22 +111,16 @@ export default function Header() {
 
             {/* RIGHT — Icons */}
             <div className="flex items-center gap-0.5 flex-shrink-0">
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background"
-                aria-label="Search">
+              <button onClick={() => setSearchOpen(true)}
+                className={`p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Search">
                 <Search className="w-[18px] h-[18px]" />
               </button>
-              <button
-                onClick={() => navigate(user ? '/account' : '/auth')}
-                className="p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background"
-                aria-label="Account">
+              <button onClick={() => navigate(user ? '/account' : '/auth')}
+                className={`p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Account">
                 <User className="w-[18px] h-[18px]" />
               </button>
-              <Link
-                to="/wishlist"
-                className="relative p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background"
-                aria-label="Wishlist">
+              <Link to="/wishlist"
+                className={`relative p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Wishlist">
                 <Heart className="w-[18px] h-[18px]" />
                 {wishlistCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold">
@@ -128,10 +128,8 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-              <button
-                onClick={() => setCartOpen(true)}
-                className="relative p-2.5 text-foreground/60 hover:text-primary transition-colors rounded-lg hover:bg-background"
-                aria-label="Cart">
+              <button onClick={() => setCartOpen(true)}
+                className={`relative p-2.5 transition-colors rounded-lg ${iconClass}`} aria-label="Cart">
                 <ShoppingBag className="w-[18px] h-[18px]" />
                 {itemCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-primary text-white text-[8px] rounded-full flex items-center justify-center font-bold">

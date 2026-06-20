@@ -24,26 +24,39 @@ export default function HeroSlider() {
   if (!slides.length) return null
 
   return (
-    <section className="relative overflow-hidden">
+    // Negative margin pulls the hero up behind the transparent sticky header (72px tall)
+    <section className="relative overflow-hidden -mt-[72px]">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {slides.map(slide => (
-            <div key={slide.id} className="relative flex-[0_0_100%] h-[70vh] min-h-[500px] max-h-[700px]">
-              <img src={slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+            <div key={slide.id} className="relative flex-[0_0_100%] h-screen min-h-[640px]">
+              <img
+                src={slide.image_url}
+                alt={slide.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Dark gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-transparent" />
+
+              {/* Slide content — centered vertically, offset for header */}
               <div className="absolute inset-0 flex items-center">
-                <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full">
-                  <div className="max-w-lg">
-                    <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight whitespace-pre-line drop-shadow-lg">
+                <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full pt-24">
+                  <div className="max-w-xl">
+                    <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-white/70 mb-4">
+                      Handcrafted with Love
+                    </p>
+                    <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-bold text-white leading-[1.1] whitespace-pre-line drop-shadow-lg">
                       {slide.title}
                     </h1>
                     {slide.subtitle && (
-                      <p className="mt-4 text-white/90 text-base sm:text-lg leading-relaxed max-w-md">
+                      <p className="mt-5 text-white/85 text-base sm:text-lg leading-relaxed max-w-md">
                         {slide.subtitle}
                       </p>
                     )}
                     {slide.cta_text && slide.cta_url && (
-                      <Link to={slide.cta_url} className="inline-block mt-8 bg-primary hover:bg-primary-dark text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                      <Link
+                        to={slide.cta_url}
+                        className="inline-block mt-9 bg-white text-primary hover:bg-primary hover:text-white font-semibold px-10 py-3.5 text-[11px] tracking-[0.18em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl">
                         {slide.cta_text}
                       </Link>
                     )}
@@ -55,18 +68,30 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Arrows */}
+      {/* Prev / Next arrows */}
       {slides.length > 1 && (
         <>
-          <button onClick={() => emblaApi?.scrollPrev()} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-all">
-            <ChevronLeft className="w-6 h-6" />
+          <button
+            onClick={() => emblaApi?.scrollPrev()}
+            className="absolute left-5 top-1/2 -translate-y-1/2 p-2.5 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full text-white transition-all">
+            <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={() => emblaApi?.scrollNext()} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-all">
-            <ChevronRight className="w-6 h-6" />
+          <button
+            onClick={() => emblaApi?.scrollNext()}
+            className="absolute right-5 top-1/2 -translate-y-1/2 p-2.5 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full text-white transition-all">
+            <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+
+          {/* Dot indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
             {slides.map((_, i) => (
-              <button key={i} onClick={() => emblaApi?.scrollTo(i)} className={`h-1.5 rounded-full transition-all duration-300 ${i === selectedIndex ? 'bg-white w-6' : 'bg-white/50 w-3'}`} />
+              <button
+                key={i}
+                onClick={() => emblaApi?.scrollTo(i)}
+                className={`h-[3px] rounded-full transition-all duration-300 ${
+                  i === selectedIndex ? 'bg-white w-8' : 'bg-white/40 w-4'
+                }`}
+              />
             ))}
           </div>
         </>

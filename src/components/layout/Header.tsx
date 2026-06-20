@@ -80,17 +80,9 @@ export default function Header() {
             <div className="flex justify-center">
               <Link to="/" className="flex flex-col items-center group">
                 <img
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="Meena Rajwada"
-                  className="h-16 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                  onError={e => {
-                    const t = e.currentTarget
-                    t.style.display = 'none'
-                    const parent = t.parentElement
-                    if (parent) {
-                      parent.innerHTML = '<span class="font-serif text-2xl font-bold text-primary tracking-wide">Meena Rajwada</span>'
-                    }
-                  }}
+                  className="h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
                 />
               </Link>
             </div>
@@ -123,8 +115,7 @@ export default function Header() {
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <Link to="/" className="absolute left-1/2 -translate-x-1/2">
-              <img src="/logo.png" alt="Meena Rajwada" className="h-12 w-auto object-contain"
-                onError={e => { e.currentTarget.style.display='none'; const s=document.createElement('span'); s.className='font-serif text-xl font-bold text-primary'; s.textContent='Meena Rajwada'; e.currentTarget.parentElement?.appendChild(s) }} />
+              <img src="/logo.svg" alt="Meena Rajwada" className="h-12 w-auto object-contain" />
             </Link>
             <div className="flex items-center gap-1">
               <button onClick={() => setSearchOpen(true)} className="p-2"><Search className="w-5 h-5" /></button>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 440">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- ═══ ORNAMENTAL CIRCLE — center (280,205) ═══ -->
+  <g transform="translate(280,205)">
+
+    <!-- Outer thin ring -->
+    <circle r="134" fill="none" stroke="#7D1935" stroke-width="1.2"/>
+
+    <!-- Beaded ring  (circumference≈842, ~46 beads: dash=5, gap=13.3) -->
+    <circle r="127" fill="none" stroke="#7D1935" stroke-width="5.5"
+            stroke-dasharray="5 13.3" stroke-linecap="round"
+            transform="rotate(-1.4)"/>
+
+    <!-- Inner thin ring -->
+    <circle r="120" fill="none" stroke="#7D1935" stroke-width="1.2"/>
+
+    <!-- ─── CROWN  (sits at top of beaded ring, centered on 0,-127) ─── -->
+    <g transform="translate(0,-148)">
+      <!-- Crown base plateau -->
+      <rect x="-22" y="18" width="44" height="9" rx="2" fill="#7D1935"/>
+
+      <!-- Left outer prong -->
+      <path d="M -22,18 L -22,1 L -11,10 L -7,18 Z" fill="#7D1935"/>
+      <!-- Centre prong — tallest -->
+      <path d="M -5,18 L -5,18 L 0,-9 L 5,18 Z" fill="#7D1935"/>
+      <!-- Right outer prong -->
+      <path d="M 7,18 L 11,10 L 22,1 L 22,18 Z" fill="#7D1935"/>
+
+      <!-- Gem balls on prong tips -->
+      <circle cx="-22" cy="-2"  r="3.2" fill="#7D1935"/>
+      <circle cx="0"   cy="-13" r="3.8" fill="#7D1935"/>
+      <circle cx="22"  cy="-2"  r="3.2" fill="#7D1935"/>
+
+      <!-- Inner half-prong gems -->
+      <circle cx="-11" cy="7" r="2.4" fill="#7D1935"/>
+      <circle cx=" 11" cy="7" r="2.4" fill="#7D1935"/>
+
+      <!-- Tiny dots on base -->
+      <circle cx="-14" cy="22.5" r="1.9" fill="#7D1935"/>
+      <circle cx="  0" cy="22.5" r="1.9" fill="#7D1935"/>
+      <circle cx=" 14" cy="22.5" r="1.9" fill="#7D1935"/>
+    </g>
+
+    <!-- ─── DIAMOND at bottom of circle ─── -->
+    <path d="M 0,131 L -7,120 L 0,109 L 7,120 Z" fill="#7D1935"/>
+
+    <!-- ─── LEFT cardinal ornament (~9-o'clock) ─── -->
+    <g transform="translate(-127,0)">
+      <circle r="4.5" fill="#7D1935"/>
+      <!-- small petal left -->
+      <path d="M -5,-3 C -13,-3 -15,3 -5,3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <path d="M -5, 3 C -13, 3 -15,-3 -5,-3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <!-- small petal right -->
+      <path d="M  5,-3 C  13,-3  15,3  5,3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <path d="M  5, 3 C  13, 3  15,-3  5,-3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+    </g>
+
+    <!-- ─── RIGHT cardinal ornament (~3-o'clock) ─── -->
+    <g transform="translate(127,0)">
+      <circle r="4.5" fill="#7D1935"/>
+      <path d="M -5,-3 C -13,-3 -15,3 -5,3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <path d="M -5, 3 C -13, 3 -15,-3 -5,-3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <path d="M  5,-3 C  13,-3  15,3  5,3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+      <path d="M  5, 3 C  13, 3  15,-3  5,-3" stroke="#7D1935" stroke-width="1.1" fill="none"/>
+    </g>
+
+    <!-- ─── MR MONOGRAM ─── -->
+    <text
+      x="2" y="66"
+      font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+      font-size="118"
+      font-weight="700"
+      fill="#7D1935"
+      text-anchor="middle"
+      dominant-baseline="auto"
+      letter-spacing="-2">MR</text>
+
+  </g><!-- end logo circle group -->
+
+  <!-- ═══ BRAND NAME ═══ -->
+  <text
+    x="280" y="372"
+    font-family="'Playfair Display', Georgia, 'Times New Roman', serif"
+    font-size="23"
+    font-weight="400"
+    fill="#7D1935"
+    text-anchor="middle"
+    letter-spacing="9">MEENA RAJWADA</text>
+
+  <!-- ═══ BOTTOM ORNAMENT ═══ -->
+  <!-- Left line -->
+  <line x1="136" y1="391" x2="247" y2="391" stroke="#7D1935" stroke-width="0.9"/>
+  <!-- Right line -->
+  <line x1="313" y1="391" x2="424" y2="391" stroke="#7D1935" stroke-width="0.9"/>
+  <!-- Centre swirl / diamond cluster -->
+  <g transform="translate(280,391)">
+    <path d="M 0,-6 C -5,-3 -5,3 0,6 C 5,3 5,-3 0,-6 Z"
+          stroke="#7D1935" stroke-width="1" fill="none"/>
+    <circle cx="-12" cy="0" r="2.2" fill="#7D1935"/>
+    <circle cx=" 12" cy="0" r="2.2" fill="#7D1935"/>
+    <circle cx="  0" cy="0" r="1.5" fill="#7D1935"/>
+  </g>
+
+</svg>

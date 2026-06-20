@@ -90,15 +90,16 @@ export default function Header() {
               <img
                 src="/logo.svg"
                 alt="MR"
-                className="h-14 w-14 object-contain group-hover:scale-105 transition-transform duration-300"
+                className="h-[60px] w-[60px] object-contain group-hover:scale-105 transition-transform duration-300"
               />
               <div className="flex flex-col leading-tight">
                 <span
-                  className={`font-serif text-xl font-bold tracking-wide leading-none transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                  className={`text-[22px] font-semibold tracking-[0.04em] leading-none transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
+                  style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}>
                   Meena Rajwada
                 </span>
-                <span className={`text-[9px] font-semibold tracking-[0.28em] uppercase mt-0.5 transition-colors duration-300 ${scrolled ? 'text-foreground/50' : 'text-white/60'}`}>
+                <span className={`text-[9px] font-medium tracking-[0.3em] uppercase mt-1 transition-colors duration-300 ${scrolled ? 'text-foreground/45' : 'text-white/55'}`}
+                  style={{ fontFamily: "'Jost', 'Lato', sans-serif" }}>
                   Handcrafted Jewellery
                 </span>
               </div>
@@ -150,9 +151,9 @@ export default function Header() {
 
             {/* Mobile center logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="MR" className="h-11 w-11 object-contain" />
-              <span className="font-serif text-base font-bold text-primary"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+              <img src="/logo.svg" alt="MR" className="h-12 w-12 object-contain" />
+              <span className={`text-lg font-semibold tracking-wide ${scrolled ? 'text-primary' : 'text-white'}`}
+                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>
                 Meena Rajwada
               </span>
             </Link>

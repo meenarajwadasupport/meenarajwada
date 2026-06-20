@@ -81,7 +81,7 @@ export default function Header() {
                 src="/logo.png"
                 alt="Meena Rajwada"
                 className="h-[68px] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                style={{ mixBlendMode: 'multiply' }}
+                style={{  }}
               />
             </Link>
 
@@ -129,7 +129,7 @@ export default function Header() {
             </button>
             <Link to="/" className="absolute left-1/2 -translate-x-1/2">
               <img src="/logo.png" alt="Meena Rajwada" className="h-12 w-auto object-contain"
-                style={{ mixBlendMode: 'multiply' }} />
+                style={{  }} />
             </Link>
             <div className="flex items-center gap-0.5">
               <button onClick={() => setSearchOpen(true)} className="p-2 text-foreground/70 hover:text-primary">

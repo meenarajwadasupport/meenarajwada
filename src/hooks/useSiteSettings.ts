@@ -12,7 +12,7 @@ interface SiteSettings {
 }
 
 const defaultSettings: SiteSettings = {
-  announcement_text: 'Free Shipping on orders above ₹5000 | Handcrafted with Love ✨',
+  announcement_text: 'Handmade with Love  |  Customized Just for You  |  Pan India Shipping',
   announcement_active: true,
   whatsapp_number: '919876543210',
   instagram_url: 'https://instagram.com/meenarajwada',

@@ -24,7 +24,7 @@ export default function HeroSlider() {
   if (!slides.length) return null
 
   return (
-    // Negative margin pulls the hero up behind the transparent sticky header (72px tall)
+    {/* -mt-[72px] pulls hero up behind the transparent sticky header only */}
     <section className="relative overflow-hidden -mt-[72px]">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">

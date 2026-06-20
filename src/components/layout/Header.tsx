@@ -88,7 +88,7 @@ export default function Header() {
             {/* LEFT — Logo + Brand name */}
             <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
               <img
-                src="/logo.svg"
+                src="/logo.png"
                 alt="MR"
                 className="h-[58px] w-auto object-contain group-hover:scale-105 transition-all duration-300"
                 style={{ filter: scrolled ? 'none' : 'brightness(0) invert(1)' }}
@@ -152,7 +152,7 @@ export default function Header() {
 
             {/* Mobile center logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="MR" className="h-11 w-auto object-contain"
+              <img src="/logo.png" alt="MR" className="h-11 w-auto object-contain"
                 style={{ filter: scrolled ? 'none' : 'brightness(0) invert(1)' }} />
               <span className={`text-lg font-semibold tracking-wide ${scrolled ? 'text-primary' : 'text-white'}`}
                 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>

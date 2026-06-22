@@ -30,6 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           src={product.images?.[0]}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={e => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80&auto=format&fit=crop' }}
         />
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">

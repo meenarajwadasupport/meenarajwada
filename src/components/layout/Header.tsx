@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { Search, ShoppingBag, Heart, User, Menu, X, ChevronDown } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
@@ -29,17 +29,26 @@ export default function Header() {
   const { count: wishlistCount } = useWishlist()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
+
+  // Non-home pages are always "scrolled" (solid white header)
+  const [scrolled, setScrolled] = useState(!isHome)
   const [cartOpen, setCartOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Close mobile menu on every route change
+  useEffect(() => { setMobileOpen(false) }, [location.pathname])
+
   useEffect(() => {
+    // Non-home pages: always solid white
+    if (!isHome) { setScrolled(true); return }
     const onScroll = () => setScrolled(window.scrollY > 80)
     window.addEventListener('scroll', onScroll)
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [isHome])
 
   // Colour helpers
   const navCls   = scrolled ? 'text-foreground/75 hover:text-primary' : 'text-white/90 hover:text-white'

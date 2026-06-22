@@ -6,6 +6,8 @@ export const fallbackHeroSlides: HeroSlide[] = [
     title: 'Handcrafted Heritage.\nCustomized For Every Story.',
     subtitle: 'Handmade Bangles, Jewelry & more. Customized with Love for You.',
     image_url: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600&q=90&auto=format&fit=crop',
+    // Demo video — replace with your own MP4 (Supabase Storage / public/videos/)
+    video_url: 'https://assets.mixkit.co/videos/preview/mixkit-woman-with-gold-jewelry-4376-large.mp4',
     cta_text: 'Explore Collections',
     cta_url: '/shop',
     display_order: 1,

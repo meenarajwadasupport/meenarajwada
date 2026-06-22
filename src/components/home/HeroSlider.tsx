@@ -41,12 +41,27 @@ export default function HeroSlider() {
         <div className="flex">
           {slides.map((slide, idx) => (
             <div key={slide.id} className="relative flex-[0_0_100%] h-screen min-h-[640px] max-h-[900px]">
-              {/* Background image */}
-              <img
-                src={slide.image_url}
-                alt={slide.title}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-              />
+              {/* Background — video if available, else image */}
+              {slide.video_url ? (
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster={slide.image_url}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                >
+                  <source src={slide.video_url} type="video/mp4" />
+                  {/* Fallback image if video fails */}
+                  <img src={slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+                </video>
+              ) : (
+                <img
+                  src={slide.image_url}
+                  alt={slide.title}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+              )}
 
               {/* Gradient — varies by slide for visual interest */}
               <div className={`absolute inset-0 ${

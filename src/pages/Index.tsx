@@ -2,6 +2,7 @@ import SEOHead from '@/components/common/SEOHead'
 import HeroSlider from '@/components/home/HeroSlider'
 import VideoSection from '@/components/home/VideoSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
+import FeaturedProducts from '@/components/home/FeaturedProducts'
 import BestSellers from '@/components/home/BestSellers'
 import CustomProcess from '@/components/home/CustomProcess'
 import SpecialMomentsBanner from '@/components/home/SpecialMomentsBanner'
@@ -20,6 +21,7 @@ export default function Index() {
       <HeroSlider />
       <VideoSection />
       <CategoryGrid />
+      <FeaturedProducts />
       <BestSellers />
       <CustomProcess />
       <SpecialMomentsBanner />

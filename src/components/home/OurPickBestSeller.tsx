@@ -5,13 +5,13 @@ import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
 
 export default function OurPickBestSeller() {
-  const { data: products = [] } = useProducts({ limit: 8 })
-  const bestsellers = products.filter(p => p.is_bestseller).slice(0, 4)
+  const { data: products = [] } = useProducts({ limit: 12 })
+  const bestsellers = products.filter(p => p.is_bestseller).slice(0, 8)
   const { addToCart } = useCart()
   const { toggleWishlist, isWishlisted } = useWishlist()
 
-  // Fallback to first 4 if no bestsellers tagged
-  const display = bestsellers.length >= 2 ? bestsellers : products.slice(0, 4)
+  // Fallback to first 8 if not enough bestsellers tagged
+  const display = bestsellers.length >= 2 ? bestsellers : products.slice(0, 8)
 
   return (
     <section className="py-12 sm:py-14" style={{ background: 'hsl(345 30% 97%)' }}>

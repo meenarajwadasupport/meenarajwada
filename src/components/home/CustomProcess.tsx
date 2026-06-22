@@ -8,12 +8,6 @@ const steps = [
   { icon: Heart, number: '04', title: 'Cherish Forever', desc: 'A one-of-a-kind piece made to be loved for generations.' },
 ]
 
-const features = [
-  { emoji: '🪡', title: 'Hand Crafted', desc: 'While trends come and go, handmade jewellery has a timeless appeal that transcends fashion fads.' },
-  { emoji: '✨', title: 'Unique Designs', desc: 'We work closely with customers to create bespoke designs that reflect their personal style and preferences.' },
-  { emoji: '💎', title: 'High Quality', desc: 'We use the finest quality materials, ensuring each piece is not only beautiful but also durable and long-lasting.' },
-]
-
 export default function CustomProcess() {
   return (
     <section className="py-16 bg-background">
@@ -43,19 +37,6 @@ export default function CustomProcess() {
           <Link to="/customize" className="btn-primary px-10 py-3">Start Your Custom Order</Link>
         </div>
 
-        {/* Divider */}
-        <div className="mt-16 mb-12 border-t border-border" />
-
-        {/* 3 feature pillars */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-          {features.map(f => (
-            <div key={f.title} className="flex flex-col items-center px-4">
-              <span className="text-4xl sm:text-5xl mb-4" role="img" aria-label={f.title}>{f.emoji}</span>
-              <h3 className="text-base font-bold text-foreground mb-3">{f.title}</h3>
-              <p className="text-sm text-foreground/60 leading-relaxed max-w-[260px]">{f.desc}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   )

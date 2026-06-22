@@ -20,38 +20,38 @@ export default function Index() {
         url="https://www.meenarajwada.com"
       />
 
-      {/* 1 — Hero with video/image slider */}
+      {/* 1 */}
       <HeroSlider />
 
-      {/* 2 — 4 product video cards */}
+      {/* 2 */}
       <VideoSection />
 
-      {/* 3 — Circular category bubbles */}
+      {/* 3 */}
       <CategoryGrid />
 
-      {/* 4 — Best Sellers / Festival sale grid */}
+      {/* 4 — Handcrafted for You / Best Sellers */}
       <FeaturedProducts />
 
-      {/* 5 — Our Pick Best Seller (portrait cards with Add to Cart) */}
+      {/* 5 — Our Pick / Best Seller (8 cards, Add to Cart) */}
       <OurPickBestSeller />
 
-      {/* 6 — Hand Crafted / Unique Designs / High Quality */}
-      <WhyChooseUs />
-
-      {/* 6 — Bridal & Gifting full-width banner */}
+      {/* 6 — Bridal & Gifting */}
       <SpecialMomentsBanner />
 
-      {/* 7 — Bespoke: How Custom Orders Work (includes WhyChooseUs at bottom) */}
+      {/* 7 — Bespoke: How Custom Orders Work */}
       <CustomProcess />
 
-      {/* 8 — Art of Handcrafting story section */}
+      {/* 8 — Art of Handcrafting */}
       <ArtOfHandcrafting />
 
-      {/* 9 — Customer testimonials */}
+      {/* 9 — Testimonials */}
       <Testimonials />
 
       {/* 10 — Instagram feed */}
       <InstagramFeed />
+
+      {/* 11 — Hand Crafted / Unique Designs / High Quality — very last */}
+      <WhyChooseUs />
     </>
   )
 }

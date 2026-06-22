@@ -31,14 +31,14 @@ export default function Index() {
       {/* 4 — Best Sellers / Festival sale grid */}
       <FeaturedProducts />
 
-      {/* 5 — Bridal & Gifting full-width banner */}
+      {/* 5 — Hand Crafted / Unique Designs / High Quality (right after Best Sellers) */}
+      <WhyChooseUs />
+
+      {/* 6 — Bridal & Gifting full-width banner */}
       <SpecialMomentsBanner />
 
-      {/* 6 — Bespoke: How Custom Orders Work */}
+      {/* 7 — Bespoke: How Custom Orders Work (includes WhyChooseUs at bottom) */}
       <CustomProcess />
-
-      {/* 7 — Hand Crafted / Unique Designs / High Quality */}
-      <WhyChooseUs />
 
       {/* 8 — Art of Handcrafting story section */}
       <ArtOfHandcrafting />

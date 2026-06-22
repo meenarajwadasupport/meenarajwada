@@ -1,11 +1,17 @@
+const VIDEO_URL = [
+  'https://www.youtube.com/embed/5K7fFBbkS10',
+  '?autoplay=1&mute=1&loop=1&playlist=5K7fFBbkS10',
+  '&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1',
+].join('')
+
 export default function VideoSection() {
   return (
     <section className="relative w-full overflow-hidden bg-black" style={{ height: '56vw', maxHeight: '640px', minHeight: '300px' }}>
       {/* YouTube embed — autoplay, muted, looped, no controls */}
       <iframe
         className="absolute inset-0 w-full h-full pointer-events-none"
-        src="https://www.youtube.com/embed/5K7fFBbkS10?autoplay=1&mute=1&loop=1&playlist=5K7fFBbkS10&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-        title="Meena Rajwada – Handcrafted Jewellery"
+        src={VIDEO_URL}
+        title="Meena Rajwada Handcrafted Jewellery"
         allow="autoplay; encrypted-media"
         allowFullScreen
         style={{ border: 'none' }}

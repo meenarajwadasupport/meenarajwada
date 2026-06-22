@@ -3,6 +3,7 @@ import HeroSlider from '@/components/home/HeroSlider'
 import VideoSection from '@/components/home/VideoSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
+import OurPickBestSeller from '@/components/home/OurPickBestSeller'
 import SpecialMomentsBanner from '@/components/home/SpecialMomentsBanner'
 import CustomProcess from '@/components/home/CustomProcess'
 import WhyChooseUs from '@/components/home/WhyChooseUs'
@@ -31,7 +32,10 @@ export default function Index() {
       {/* 4 — Best Sellers / Festival sale grid */}
       <FeaturedProducts />
 
-      {/* 5 — Hand Crafted / Unique Designs / High Quality (right after Best Sellers) */}
+      {/* 5 — Our Pick Best Seller (portrait cards with Add to Cart) */}
+      <OurPickBestSeller />
+
+      {/* 6 — Hand Crafted / Unique Designs / High Quality */}
       <WhyChooseUs />
 
       {/* 6 — Bridal & Gifting full-width banner */}

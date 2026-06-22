@@ -5,9 +5,21 @@ import Autoplay from 'embla-carousel-autoplay'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useHeroSlides } from '@/hooks/useHeroSlides'
 
+// Marquee messages — unique, not copied from any reference
+const TICKER_ITEMS = [
+  '✦ Please check size chart before placing your order',
+  '✦ Handcrafted with love — each piece is unique',
+  '✦ Custom orders delivered in 7–10 days',
+  '✦ Pan India shipping available',
+  '✦ 100% handmade jewellery',
+]
+
 export default function HeroSlider() {
   const { data: slides = [] } = useHeroSlides()
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 5000, stopOnInteraction: false })])
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true },
+    [Autoplay({ delay: 5500, stopOnInteraction: false })]
+  )
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const onSelect = useCallback(() => {
@@ -27,41 +39,79 @@ export default function HeroSlider() {
     <section className="relative overflow-hidden -mt-[76px]">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
-          {slides.map(slide => (
-            <div key={slide.id} className="relative flex-[0_0_100%] h-[88vh] min-h-[580px]">
+          {slides.map((slide, idx) => (
+            <div key={slide.id} className="relative flex-[0_0_100%] h-screen min-h-[640px] max-h-[900px]">
+              {/* Background image */}
               <img
                 src={slide.image_url}
                 alt={slide.title}
                 className="absolute inset-0 w-full h-full object-cover object-center"
               />
-              {/* Dark gradient overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
 
-              {/* Slide content — vertically centered */}
-              <div className="absolute inset-0 flex items-center">
-                <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full">
-                  <div className="max-w-xl">
-                    <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-white/70 mb-4">
-                      Handcrafted with Love
+              {/* Gradient — varies by slide for visual interest */}
+              <div className={`absolute inset-0 ${
+                idx % 2 === 0
+                  ? 'bg-gradient-to-r from-black/65 via-black/35 to-black/10'
+                  : 'bg-gradient-to-b from-black/20 via-black/40 to-black/70'
+              }`} />
+
+              {/* ── Centered hero content ── */}
+              <div className="absolute inset-0 flex items-center justify-center text-center px-6">
+                <div className="max-w-2xl">
+                  {/* Decorative top line */}
+                  <div className="flex items-center justify-center gap-3 mb-5">
+                    <span className="block w-12 h-[1px] bg-white/50" />
+                    <p className="text-[10px] font-semibold tracking-[0.45em] uppercase text-white/75">
+                      Meena Rajwada
                     </p>
-                    <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-bold text-white leading-[1.1] whitespace-pre-line drop-shadow-lg">
-                      {slide.title}
-                    </h1>
-                    {slide.subtitle && (
-                      <p className="mt-5 text-white/85 text-base sm:text-lg leading-relaxed max-w-md">
-                        {slide.subtitle}
-                      </p>
-                    )}
+                    <span className="block w-12 h-[1px] bg-white/50" />
+                  </div>
+
+                  {/* Main headline */}
+                  <h1
+                    className="text-4xl sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-bold text-white leading-[1.05] drop-shadow-xl whitespace-pre-line"
+                    style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+                  >
+                    {slide.title}
+                  </h1>
+
+                  {/* Decorative divider */}
+                  <div className="flex items-center justify-center gap-2 mt-5">
+                    <span className="block w-6 h-[1px] bg-white/40" />
+                    <span className="text-white/50 text-xs">✦</span>
+                    <span className="block w-6 h-[1px] bg-white/40" />
+                  </div>
+
+                  {slide.subtitle && (
+                    <p className="mt-4 text-white/80 text-base sm:text-lg leading-relaxed max-w-lg mx-auto font-light">
+                      {slide.subtitle}
+                    </p>
+                  )}
+
+                  {/* Dual CTA */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 mt-9">
                     {slide.cta_text && slide.cta_url && (
                       <Link
                         to={slide.cta_url}
-                        className="inline-block mt-9 bg-white text-primary hover:bg-primary hover:text-white font-semibold px-10 py-3.5 text-[11px] tracking-[0.18em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl">
+                        className="bg-white text-primary hover:bg-primary hover:text-white font-bold px-10 py-3.5 text-[11px] tracking-[0.22em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
                         {slide.cta_text}
                       </Link>
                     )}
+                    <Link
+                      to="/customize"
+                      className="border border-white text-white hover:bg-white hover:text-primary font-semibold px-10 py-3.5 text-[11px] tracking-[0.22em] uppercase transition-all duration-300"
+                    >
+                      Customize Yours
+                    </Link>
                   </div>
                 </div>
               </div>
+
+              {/* Slide number — bottom right */}
+              <span className="absolute bottom-16 right-6 text-white/40 text-xs tracking-widest font-light">
+                {String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+              </span>
             </div>
           ))}
         </div>
@@ -72,12 +122,16 @@ export default function HeroSlider() {
         <>
           <button
             onClick={() => emblaApi?.scrollPrev()}
-            className="absolute left-5 top-1/2 -translate-y-1/2 p-2.5 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full text-white transition-all">
+            aria-label="Previous slide"
+            className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-full text-white transition-all duration-200 border border-white/20"
+          >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => emblaApi?.scrollNext()}
-            className="absolute right-5 top-1/2 -translate-y-1/2 p-2.5 bg-white/15 hover:bg-white/30 backdrop-blur-sm rounded-full text-white transition-all">
+            aria-label="Next slide"
+            className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-full text-white transition-all duration-200 border border-white/20"
+          >
             <ChevronRight className="w-5 h-5" />
           </button>
 
@@ -87,8 +141,8 @@ export default function HeroSlider() {
               <button
                 key={i}
                 onClick={() => emblaApi?.scrollTo(i)}
-                className={`h-[3px] rounded-full transition-all duration-300 ${
-                  i === selectedIndex ? 'bg-white w-8' : 'bg-white/40 w-4'
+                className={`h-[2px] rounded-full transition-all duration-400 ${
+                  i === selectedIndex ? 'bg-white w-10' : 'bg-white/35 w-5'
                 }`}
               />
             ))}
@@ -96,14 +150,20 @@ export default function HeroSlider() {
         </>
       )}
 
-      {/* ── MARQUEE TICKER at bottom of hero ── */}
-      <div className="absolute bottom-0 left-0 right-0 bg-primary/80 backdrop-blur-sm overflow-hidden h-9 flex items-center">
+      {/* ── MARQUEE TICKER — unique style (gold/cream, different from Rosin) ── */}
+      <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-9 flex items-center"
+        style={{ background: 'linear-gradient(90deg, #7D1935 0%, #9e2044 50%, #7D1935 100%)' }}>
         <div className="flex animate-marquee whitespace-nowrap">
-          {[...Array(8)].map((_, i) => (
-            <span key={i} className="text-white text-[11px] font-semibold tracking-[0.2em] uppercase mx-8">
-              Must check size chart before ordering {' '}—{' '}
-            </span>
-          ))}
+          {[...Array(3)].map((_, rep) =>
+            TICKER_ITEMS.map((msg, i) => (
+              <span
+                key={`${rep}-${i}`}
+                className="text-white/90 text-[10px] font-medium tracking-[0.25em] uppercase mx-10"
+              >
+                {msg}
+              </span>
+            ))
+          )}
         </div>
       </div>
     </section>

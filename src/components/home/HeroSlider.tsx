@@ -40,7 +40,7 @@ export default function HeroSlider() {
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {slides.map((slide, idx) => (
-            <div key={slide.id} className="relative flex-[0_0_100%] h-screen min-h-[640px] max-h-[900px]">
+            <div key={slide.id} className="relative flex-[0_0_100%] h-[92vh] sm:h-screen min-h-[520px] max-h-[900px]">
               {/* Background — video if available, else image */}
               {slide.video_url ? (
                 <video
@@ -71,51 +71,51 @@ export default function HeroSlider() {
               }`} />
 
               {/* ── Centered hero content ── */}
-              <div className="absolute inset-0 flex items-center justify-center text-center px-6">
-                <div className="max-w-2xl">
+              <div className="absolute inset-0 flex items-center justify-center text-center px-5 sm:px-8">
+                <div className="w-full max-w-2xl">
                   {/* Decorative top line */}
-                  <div className="flex items-center justify-center gap-3 mb-5">
-                    <span className="block w-12 h-[1px] bg-white/50" />
-                    <p className="text-[10px] font-semibold tracking-[0.45em] uppercase text-white/75">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-5">
+                    <span className="block w-8 sm:w-12 h-[1px] bg-white/50" />
+                    <p className="text-[9px] sm:text-[10px] font-semibold tracking-[0.4em] uppercase text-white/75">
                       Meena Rajwada
                     </p>
-                    <span className="block w-12 h-[1px] bg-white/50" />
+                    <span className="block w-8 sm:w-12 h-[1px] bg-white/50" />
                   </div>
 
                   {/* Main headline */}
                   <h1
-                    className="text-4xl sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-bold text-white leading-[1.05] drop-shadow-xl whitespace-pre-line"
+                    className="text-[2rem] sm:text-5xl lg:text-[4rem] xl:text-[4.5rem] font-bold text-white leading-[1.1] drop-shadow-xl whitespace-pre-line"
                     style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
                   >
                     {slide.title}
                   </h1>
 
                   {/* Decorative divider */}
-                  <div className="flex items-center justify-center gap-2 mt-5">
+                  <div className="flex items-center justify-center gap-2 mt-4">
                     <span className="block w-6 h-[1px] bg-white/40" />
                     <span className="text-white/50 text-xs">✦</span>
                     <span className="block w-6 h-[1px] bg-white/40" />
                   </div>
 
                   {slide.subtitle && (
-                    <p className="mt-4 text-white/80 text-base sm:text-lg leading-relaxed max-w-lg mx-auto font-light">
+                    <p className="mt-3 sm:mt-4 text-white/80 text-sm sm:text-base lg:text-lg leading-relaxed max-w-sm sm:max-w-lg mx-auto font-light">
                       {slide.subtitle}
                     </p>
                   )}
 
-                  {/* Dual CTA */}
-                  <div className="flex flex-wrap items-center justify-center gap-4 mt-9">
+                  {/* Dual CTA — stacked on mobile, side by side on sm+ */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-7 sm:mt-9">
                     {slide.cta_text && slide.cta_url && (
                       <Link
                         to={slide.cta_url}
-                        className="bg-white text-primary hover:bg-primary hover:text-white font-bold px-10 py-3.5 text-[11px] tracking-[0.22em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl"
+                        className="w-full sm:w-auto bg-white text-primary hover:bg-primary hover:text-white font-bold px-8 sm:px-10 py-3 sm:py-3.5 text-[11px] tracking-[0.2em] uppercase transition-all duration-300 shadow-lg"
                       >
                         {slide.cta_text}
                       </Link>
                     )}
                     <Link
                       to="/customize"
-                      className="border border-white text-white hover:bg-white hover:text-primary font-semibold px-10 py-3.5 text-[11px] tracking-[0.22em] uppercase transition-all duration-300"
+                      className="w-full sm:w-auto border border-white text-white hover:bg-white hover:text-primary font-semibold px-8 sm:px-10 py-3 sm:py-3.5 text-[11px] tracking-[0.2em] uppercase transition-all duration-300"
                     >
                       Customize Yours
                     </Link>
@@ -123,8 +123,8 @@ export default function HeroSlider() {
                 </div>
               </div>
 
-              {/* Slide number — bottom right */}
-              <span className="absolute bottom-16 right-6 text-white/40 text-xs tracking-widest font-light">
+              {/* Slide number — hidden on mobile */}
+              <span className="hidden sm:block absolute bottom-16 right-6 text-white/40 text-xs tracking-widest font-light">
                 {String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
               </span>
             </div>

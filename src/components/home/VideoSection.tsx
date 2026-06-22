@@ -44,7 +44,7 @@ const VIDEO_ITEMS = [
 export default function VideoSection() {
   return (
     <section className="bg-white py-8 px-4 sm:px-8 lg:px-14">
-      <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {VIDEO_ITEMS.map(item => (
           <Link
             key={item.id}

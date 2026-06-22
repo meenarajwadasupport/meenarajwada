@@ -5,35 +5,33 @@ export default function CategoryGrid() {
   const { data: categories = [] } = useCategories()
 
   return (
-    <section className="py-14 bg-[#FAFAFA]">
-      <div className="max-w-5xl mx-auto px-6 sm:px-10">
+    <section className="py-12 sm:py-14 bg-[#FAFAFA]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-10">
 
-        {/* Heading — exactly like reference: centered, bold, uppercase spaced */}
-        <h2 className="text-center text-lg sm:text-xl font-bold tracking-[0.28em] uppercase text-foreground mb-10">
+        <h2 className="text-center text-base sm:text-lg font-bold tracking-[0.28em] uppercase text-foreground mb-8 sm:mb-10">
           Shop by Category
         </h2>
 
-        {/* 2 rows × 6 columns = 12 circles */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-y-8 gap-x-3">
+        {/* Mobile: 4 cols | SM+: 6 cols — 2 rows of 6 */}
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-y-6 gap-x-2 sm:gap-x-3">
           {categories.map(cat => (
             <Link
               key={cat.id}
               to={`/category/${cat.slug}`}
-              className="group flex flex-col items-center gap-3"
+              className="group flex flex-col items-center gap-2"
             >
-              {/* Circle */}
-              <div className="relative w-[108px] h-[108px] sm:w-[120px] sm:h-[120px] lg:w-[130px] lg:h-[130px] rounded-full overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
+              {/* Circle — pure CSS hover, no JS events */}
+              <div className="relative rounded-full overflow-hidden flex-shrink-0 shadow-sm
+                w-[72px] h-[72px] sm:w-[100px] sm:h-[100px] lg:w-[118px] lg:h-[118px]
+                border-2 border-transparent group-hover:border-primary transition-all duration-300">
                 <img
                   src={cat.image_url}
                   alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                  style={{ transform: 'scale(1)', transition: 'transform 0.5s ease' }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
               </div>
-              {/* Label */}
-              <span className="text-[12px] sm:text-[13px] font-normal text-center text-foreground/80 group-hover:text-primary transition-colors leading-tight">
+              <span className="text-[10px] sm:text-[11px] lg:text-[12px] font-medium text-center text-foreground/75 group-hover:text-primary transition-colors leading-tight max-w-[76px] sm:max-w-none">
                 {cat.name}
               </span>
             </Link>

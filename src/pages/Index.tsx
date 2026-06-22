@@ -1,6 +1,6 @@
 import SEOHead from '@/components/common/SEOHead'
 import HeroSlider from '@/components/home/HeroSlider'
-import TrustBadges from '@/components/home/TrustBadges'
+import VideoSection from '@/components/home/VideoSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import BestSellers from '@/components/home/BestSellers'
 import CustomProcess from '@/components/home/CustomProcess'
@@ -18,7 +18,7 @@ export default function Index() {
         url="https://www.meenarajwada.com"
       />
       <HeroSlider />
-      <TrustBadges />
+      <VideoSection />
       <CategoryGrid />
       <BestSellers />
       <CustomProcess />
@@ -28,4 +28,3 @@ export default function Index() {
       <InstagramFeed />
     </>
   )
-}

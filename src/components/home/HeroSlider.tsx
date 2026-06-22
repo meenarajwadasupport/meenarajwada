@@ -82,7 +82,7 @@ export default function HeroSlider() {
           </button>
 
           {/* Dot indicators */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2">
             {slides.map((_, i) => (
               <button
                 key={i}
@@ -95,6 +95,17 @@ export default function HeroSlider() {
           </div>
         </>
       )}
+
+      {/* ── MARQUEE TICKER at bottom of hero ── */}
+      <div className="absolute bottom-0 left-0 right-0 bg-primary/80 backdrop-blur-sm overflow-hidden h-9 flex items-center">
+        <div className="flex animate-marquee whitespace-nowrap">
+          {[...Array(8)].map((_, i) => (
+            <span key={i} className="text-white text-[11px] font-semibold tracking-[0.2em] uppercase mx-8">
+              Must check size chart before ordering &nbsp;—&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

@@ -101,7 +101,7 @@ export default function HeroSlider() {
         <div className="flex animate-marquee whitespace-nowrap">
           {[...Array(8)].map((_, i) => (
             <span key={i} className="text-white text-[11px] font-semibold tracking-[0.2em] uppercase mx-8">
-              Must check size chart before ordering &nbsp;—&nbsp;
+              Must check size chart before ordering {' '}—{' '}
             </span>
           ))}
         </div>

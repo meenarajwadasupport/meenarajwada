@@ -45,10 +45,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         >
           <Heart className={cn('w-4 h-4', wishlisted ? 'fill-primary text-primary' : 'text-muted-foreground')} />
         </button>
-        {/* Quick add */}
+        {/* Quick add — always visible on mobile, hover-only on desktop */}
         <button
           onClick={handleQuickAdd}
-          className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition-all duration-200"
+          className="absolute bottom-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition-all duration-200"
         >
           <ShoppingBag className="w-4 h-4" />
         </button>

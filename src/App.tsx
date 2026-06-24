@@ -4,6 +4,8 @@ import { CartProvider } from '@/contexts/CartContext'
 import { WishlistProvider } from '@/contexts/WishlistContext'
 import Layout from '@/components/layout/Layout'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
+import AppErrorBoundary from '@/components/common/AppErrorBoundary'
+import ScrollToTop from '@/components/common/ScrollToTop'
 
 // Pages
 import Index from '@/pages/Index'
@@ -47,7 +49,9 @@ import AdminCustomOrders from '@/pages/admin/AdminCustomOrders'
 
 export default function App() {
   return (
+    <AppErrorBoundary>
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
@@ -100,5 +104,6 @@ export default function App() {
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
+    </AppErrorBoundary>
   )
 }

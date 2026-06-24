@@ -65,7 +65,7 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Stay Connected</h4>
             <p className="text-sm mb-4">Get new arrivals, offers & crafting stories straight to your inbox.</p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"
                 value={email}

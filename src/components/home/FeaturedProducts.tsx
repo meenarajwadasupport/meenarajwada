@@ -66,8 +66,8 @@ export default function FeaturedProducts() {
                     </span>
                   )}
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
+                  {/* Overlay — always visible on mobile, hover on desktop */}
+                  <div className="absolute inset-0 bg-black/0 md:group-hover:bg-black/20 transition-colors duration-300 flex items-end justify-center pb-4 opacity-100 md:opacity-0 md:group-hover:opacity-100">
                     <span className="bg-white text-primary text-[11px] font-bold uppercase tracking-widest px-5 py-2 rounded-full shadow-lg">
                       View Details
                     </span>

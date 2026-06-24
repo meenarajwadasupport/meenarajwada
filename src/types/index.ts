@@ -32,6 +32,7 @@ export interface Category {
 
 export interface Order {
   id: string
+  order_number?: string       // e.g. MR-10001
   user_id?: string
   customer_name: string
   customer_email: string
@@ -50,8 +51,9 @@ export interface Order {
   cashfree_order_id?: string
   tracking_id?: string
   courier?: string
-  dispatch_email_sent?: boolean
+  email_sent?: boolean        // prevents duplicate dispatch emails
   created_at: string
+  updated_at?: string
   order_items?: OrderItem[]
 }
 

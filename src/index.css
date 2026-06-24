@@ -21,7 +21,7 @@
     --radius: 0.375rem;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: auto; }
   body {
     @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;

@@ -19,7 +19,7 @@ export default function InstagramFeed() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <p className="section-label">Follow Along</p>
-          <h2 className="section-title">@meenarajwada</h2>
+          <h2 className="section-title">@meena.rajwada</h2>
           <div className="divider" />
         </div>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
@@ -33,7 +33,7 @@ export default function InstagramFeed() {
           ))}
         </div>
         <div className="text-center mt-8">
-          <a href={settings?.instagram_url ?? 'https://instagram.com/meenarajwada'} target="_blank" rel="noopener noreferrer" className="btn-outline px-8 py-3 inline-flex items-center gap-2">
+          <a href={settings?.instagram_url ?? 'https://instagram.com/meena.rajwada'} target="_blank" rel="noopener noreferrer" className="btn-outline px-8 py-3 inline-flex items-center gap-2">
             <Instagram className="w-4 h-4" /> Follow on Instagram
           </a>
         </div>

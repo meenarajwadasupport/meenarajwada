@@ -17,13 +17,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      const saved = sessionStorage.getItem('cart')
+      const saved = localStorage.getItem('mr_cart')
       return saved ? JSON.parse(saved) : []
     } catch { return [] }
   })
 
   useEffect(() => {
-    sessionStorage.setItem('cart', JSON.stringify(items))
+    localStorage.setItem('mr_cart', JSON.stringify(items))
   }, [items])
 
   function addToCart(product: Product, size: string, quantity = 1) {

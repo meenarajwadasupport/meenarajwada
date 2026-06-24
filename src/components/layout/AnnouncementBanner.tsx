@@ -8,13 +8,23 @@ export default function AnnouncementBanner() {
     || 'Handmade with Love  ✦  Customized Just for You  ✦  Pan India Shipping  ✦  Free Shipping on Orders ₹999+'
 
   return (
-    <div className="bg-primary text-white overflow-hidden flex items-center" style={{ height: '26px' }}>
-      {/* Fixed height, vertically centred, GPU-accelerated marquee */}
-      <div className="inline-flex whitespace-nowrap animate-marquee" style={{ willChange: 'transform' }}>
-        <span className="text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10">
+    <div className="bg-primary overflow-hidden" style={{ height: '28px' }}>
+      {/* line-height = container height centres text reliably on all mobile browsers */}
+      <div
+        className="inline-flex whitespace-nowrap animate-marquee"
+        style={{ willChange: 'transform', height: '28px', lineHeight: '28px' }}
+      >
+        <span
+          className="text-white text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10"
+          style={{ lineHeight: '28px' }}
+        >
           {base}
         </span>
-        <span aria-hidden className="text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10">
+        <span
+          aria-hidden
+          className="text-white text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10"
+          style={{ lineHeight: '28px' }}
+        >
           {base}
         </span>
       </div>

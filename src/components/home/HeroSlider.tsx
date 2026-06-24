@@ -165,22 +165,6 @@ export default function HeroSlider() {
         </>
       )}
 
-      {/* ── MARQUEE TICKER — unique style (gold/cream, different from Rosin) ── */}
-      <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-9 flex items-center"
-        style={{ background: 'linear-gradient(90deg, #7D1935 0%, #9e2044 50%, #7D1935 100%)' }}>
-        <div className="flex animate-marquee whitespace-nowrap">
-          {[...Array(3)].map((_, rep) =>
-            TICKER_ITEMS.map((msg, i) => (
-              <span
-                key={`${rep}-${i}`}
-                className="text-white/90 text-[10px] font-medium tracking-[0.25em] uppercase mx-10"
-              >
-                {msg}
-              </span>
-            ))
-          )}
-        </div>
-      </div>
     </section>
   )
 }

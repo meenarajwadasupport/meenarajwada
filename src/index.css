@@ -29,6 +29,11 @@
   h1, h2, h3, h4 { @apply font-serif; }
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
 @layer components {
   .btn-primary {
     @apply inline-block bg-primary text-primary-foreground px-7 py-3 text-xs font-bold tracking-widest uppercase border-2 border-primary transition-all duration-200 hover:bg-primary-dark hover:border-primary-dark cursor-pointer;

@@ -22,61 +22,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function fetchProfile(userId: string, authUser?: User) {
+  // Fetch profile — reads is_admin from JWT app_metadata as fallback
+  async function fetchProfile(authUser: User) {
     try {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', authUser.id)
         .maybeSingle()
-      // Merge is_admin from JWT app_metadata as fallback
-      const isAdmin = authUser?.app_metadata?.is_admin === true
+
+      const isAdmin = authUser.app_metadata?.is_admin === true
+
       if (data) {
         setProfile({ ...data, is_admin: data.is_admin || isAdmin } as Profile)
       } else {
-        // Profile row missing — build from JWT
+        // Profile row missing — build from JWT metadata
         setProfile({
-          id: userId,
-          full_name: authUser?.user_metadata?.full_name ?? authUser?.email ?? '',
+          id: authUser.id,
+          full_name: authUser.user_metadata?.full_name ?? authUser.email ?? '',
           is_admin: isAdmin,
-          created_at: '',
+          created_at: new Date().toISOString(),
         } as Profile)
       }
     } catch {
-      // Even on error, build minimal profile from JWT
-      const isAdmin = authUser?.app_metadata?.is_admin === true
+      // RLS blocked or network error — still build from JWT
+      const isAdmin = authUser.app_metadata?.is_admin === true
       setProfile({
-        id: userId,
-        full_name: authUser?.email ?? '',
+        id: authUser.id,
+        full_name: authUser.email ?? '',
         is_admin: isAdmin,
-        created_at: '',
+        created_at: new Date().toISOString(),
       } as Profile)
     }
   }
 
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id, session.user)
-      }
-      setLoading(false)
-    })
-
-    // Listen for auth changes
+    // ── Helmet Hub pattern: set up listener BEFORE getSession ──
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+
         if (session?.user) {
-          await fetchProfile(session.user.id, session.user)
+          // Defer profile fetch with setTimeout to avoid auth deadlock
+          setTimeout(() => {
+            fetchProfile(session.user!)
+          }, 0)
         } else {
           setProfile(null)
         }
       }
     )
+
+    // Then get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        setTimeout(() => {
+          fetchProfile(session.user!).finally(() => setLoading(false))
+        }, 0)
+      } else {
+        setLoading(false)
+      }
+    })
 
     return () => subscription.unsubscribe()
   }, [])
@@ -87,16 +96,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string, fullName: string) {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: fullName } }
     })
     if (error) throw error
+
+    // Create profile in app code (Helmet Hub pattern — no trigger needed)
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: fullName,
+        is_admin: false,
+      }, { onConflict: 'id' })
+    }
   }
 
   async function signOut() {
     await supabase.auth.signOut()
     setProfile(null)
+    setUser(null)
+    setSession(null)
   }
 
   async function signInWithGoogle() {

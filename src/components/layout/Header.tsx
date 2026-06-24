@@ -237,8 +237,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ─── MOBILE BOTTOM NAV (RoSin style) ─── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
+      {/* ─── MOBILE BOTTOM NAV — appears only when scrolled (header is white) ─── */}
+      <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-border shadow-[0_-2px_12px_rgba(0,0,0,0.06)] transition-transform duration-300 ${scrolled ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="flex items-center justify-around py-2 pb-safe">
 
           <Link to="/" className="flex flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground hover:text-primary transition-colors">

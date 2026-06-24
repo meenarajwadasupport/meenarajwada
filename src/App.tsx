@@ -43,6 +43,7 @@ import AdminHeroSlider from '@/pages/admin/AdminHeroSlider'
 import AdminSiteSettings from '@/pages/admin/AdminSiteSettings'
 import AdminMessages from '@/pages/admin/AdminMessages'
 import AdminNewsletter from '@/pages/admin/AdminNewsletter'
+import AdminCustomOrders from '@/pages/admin/AdminCustomOrders'
 
 export default function App() {
   return (
@@ -90,6 +91,7 @@ export default function App() {
                 <Route path="site-settings" element={<AdminSiteSettings />} />
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="newsletter" element={<AdminNewsletter />} />
+                <Route path="custom-orders" element={<AdminCustomOrders />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

@@ -78,7 +78,7 @@ export interface Profile {
   full_name: string
   email?: string
   phone?: string
-  role: 'customer' | 'admin'
+  is_admin: boolean
   avatar_url?: string
   created_at: string
 }

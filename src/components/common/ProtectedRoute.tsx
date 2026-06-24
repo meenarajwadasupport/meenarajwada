@@ -6,24 +6,28 @@ interface ProtectedRouteProps {
   adminOnly?: boolean
 }
 
+const Spinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+)
+
 export default function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth()
   const location = useLocation()
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  // Still loading auth session
+  if (loading) return <Spinner />
 
-  if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />
-  }
+  // Not logged in
+  if (!user) return <Navigate to="/auth" state={{ from: location }} replace />
 
-  if (adminOnly && profile?.role !== 'admin') {
-    return <Navigate to="/" replace />
+  // Admin route: wait for profile to load before deciding
+  if (adminOnly) {
+    // Profile not yet fetched — keep showing spinner
+    if (profile === null) return <Spinner />
+    // Profile loaded but not admin
+    if (!profile.is_admin) return <Navigate to="/" replace />
   }
 
   return <>{children}</>

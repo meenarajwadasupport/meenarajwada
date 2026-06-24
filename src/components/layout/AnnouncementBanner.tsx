@@ -8,13 +8,13 @@ export default function AnnouncementBanner() {
     || 'Handmade with Love  ✦  Customized Just for You  ✦  Pan India Shipping  ✦  Free Shipping on Orders ₹999+'
 
   return (
-    <div className="bg-primary text-white py-1.5 overflow-hidden">
-      {/* Two copies side by side; animation moves left by exactly 50% — inline-flex + will-change for mobile GPU */}
+    <div className="bg-primary text-white overflow-hidden flex items-center" style={{ height: '26px' }}>
+      {/* Fixed height, vertically centred, GPU-accelerated marquee */}
       <div className="inline-flex whitespace-nowrap animate-marquee" style={{ willChange: 'transform' }}>
-        <span className="text-[10px] font-semibold tracking-[0.2em] uppercase whitespace-nowrap px-10">
+        <span className="text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10">
           {base}
         </span>
-        <span aria-hidden className="text-[10px] font-semibold tracking-[0.2em] uppercase whitespace-nowrap px-10">
+        <span aria-hidden className="text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10">
           {base}
         </span>
       </div>

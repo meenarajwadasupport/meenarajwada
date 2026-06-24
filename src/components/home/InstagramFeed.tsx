@@ -1,33 +1,45 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Instagram, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { useCallback } from 'react'
+import { Instagram, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
-const REELS = [
+const POSTS = [
   {
-    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=500&q=80',
+    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=600&q=85',
     caption: 'Gold Silk Thread Bangles ✨',
+    likes: '2.4k',
+    tag: 'New Arrival',
   },
   {
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&q=80',
-    caption: 'Bridal Kundan Set 👑',
+    image: 'https://images.unsplash.com/photo-1610611424854-5f5da64d4fbc?w=600&q=85',
+    caption: 'Bridal Bangle Set 👑',
+    likes: '3.8k',
+    tag: 'Bestseller',
   },
   {
-    image: 'https://images.unsplash.com/photo-1583391733956-62a1c35c8c4e?w=500&q=80',
-    caption: 'Handcrafted with love 💖',
+    image: 'https://images.unsplash.com/photo-1583391733956-62a1c35c8c4e?w=600&q=85',
+    caption: 'Handcrafted with Love 💖',
+    likes: '1.9k',
+    tag: 'Handmade',
   },
   {
-    image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=500&q=80',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=85',
+    caption: 'Kundan Heritage Set 🌺',
+    likes: '4.1k',
+    tag: 'Heritage',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=600&q=85',
     caption: 'Festive Collection 🪔',
+    likes: '2.7k',
+    tag: 'Festive',
   },
   {
-    image: 'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=500&q=80',
-    caption: 'Custom Jewellery Orders 💍',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=500&q=80',
-    caption: 'Rajwada Heritage Pieces 🌺',
+    image: 'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=600&q=85',
+    caption: 'Custom Orders Open 💍',
+    likes: '3.3k',
+    tag: 'Custom',
   },
 ]
 
@@ -37,140 +49,115 @@ export default function InstagramFeed() {
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'start', slidesToScroll: 1 },
-    [Autoplay({ delay: 3500, stopOnInteraction: true })]
+    [Autoplay({ delay: 2800, stopOnInteraction: true })]
   )
-  const [canPrev, setCanPrev] = useState(false)
-  const [canNext, setCanNext] = useState(true)
 
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return
-    setCanPrev(emblaApi.canScrollPrev())
-    setCanNext(emblaApi.canScrollNext())
-  }, [emblaApi])
-
-  useEffect(() => {
-    if (!emblaApi) return
-    emblaApi.on('select', onSelect)
-    onSelect()
-  }, [emblaApi, onSelect])
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   return (
-    <section className="py-14 sm:py-20 overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, hsl(345,80%,10%) 0%, hsl(345,60%,16%) 100%)' }}>
+    <section className="py-12 sm:py-16 bg-background overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="text-center mb-8 sm:mb-12 px-4">
-        {/* Instagram badge */}
+      <div className="text-center mb-8 sm:mb-10 px-4">
         <a
           href={igUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-xs font-bold tracking-widest uppercase mb-5 transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[10px] font-bold tracking-widest uppercase mb-4 transition-opacity hover:opacity-80"
           style={{ background: 'linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045)' }}
         >
-          <Instagram className="w-3.5 h-3.5" />
-          Follow Us
+          <Instagram className="w-3 h-3" />
+          Follow @meena.rajwada
         </a>
 
-        <h2
-          className="text-white text-2xl sm:text-4xl font-bold mb-2"
-          style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-        >
-          Join Our{' '}
-          <span style={{ background: 'linear-gradient(90deg, #fcb045, #fd1d1d)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Insta Story
-          </span>
-        </h2>
-
-        <a
-          href={igUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-white/60 hover:text-white text-sm font-medium transition-colors"
-        >
-          @meena.rajwada
-          <ChevronRight className="w-4 h-4" />
-        </a>
+        <p className="section-label">Our Story</p>
+        <h2 className="section-title">Shop Our Latest Drops</h2>
+        <div className="divider" />
+        <p className="text-xs text-muted-foreground mt-2 tracking-wide">
+          Handcrafted jewellery — straight from our workshop to you
+        </p>
       </div>
 
       {/* ── Carousel ── */}
       <div className="relative">
         <div ref={emblaRef} className="overflow-hidden">
           <div className="flex gap-3 sm:gap-4 pl-4 sm:pl-8 lg:pl-16 pr-4">
-            {REELS.map((reel, i) => (
+            {POSTS.map((post, i) => (
               <a
                 key={i}
                 href={igUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex-[0_0_72vw] sm:flex-[0_0_320px] lg:flex-[0_0_280px] relative rounded-2xl overflow-hidden aspect-[9/16] max-h-[360px] sm:max-h-[400px] bg-black"
+                className="group flex-[0_0_68vw] sm:flex-[0_0_260px] lg:flex-[0_0_240px] flex-shrink-0 rounded-2xl overflow-hidden bg-white border border-border shadow-sm hover:shadow-md transition-shadow duration-300"
               >
-                <img
-                  src={reel.image}
-                  alt={reel.caption}
-                  className="w-full h-full object-cover opacity-85 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500"
-                />
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
-
-                {/* Play button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white ml-0.5" />
+                {/* Image — square crop */}
+                <div className="relative aspect-square overflow-hidden">
+                  <img
+                    src={post.image}
+                    alt={post.caption}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {/* Tag pill */}
+                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-primary text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border border-primary/20">
+                    {post.tag}
+                  </span>
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                    <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                 </div>
 
-                {/* Instagram icon top right */}
-                <div className="absolute top-3 right-3">
-                  <Instagram className="w-5 h-5 text-white/80" />
+                {/* Caption + likes */}
+                <div className="flex items-center justify-between px-3 py-2.5">
+                  <p className="text-xs font-medium text-foreground/80 truncate pr-2 leading-snug">
+                    {post.caption}
+                  </p>
+                  <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
+                    <Heart className="w-3 h-3" />
+                    <span className="text-[10px] font-medium">{post.likes}</span>
+                  </div>
                 </div>
-
-                {/* Caption bottom */}
-                <p className="absolute bottom-3 left-3 right-3 text-white text-xs sm:text-sm font-medium leading-snug">
-                  {reel.caption}
-                </p>
               </a>
             ))}
           </div>
         </div>
 
-        {/* Prev / Next — hidden on small mobile, visible from sm */}
+        {/* Prev / Next — desktop only */}
         <button
-          onClick={() => emblaApi?.scrollPrev()}
-          className="hidden sm:flex absolute left-2 lg:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 backdrop-blur-sm items-center justify-center text-white transition-all duration-200 disabled:opacity-30"
-          disabled={!canPrev}
+          onClick={scrollPrev}
+          className="hidden sm:flex absolute left-2 lg:left-6 top-[45%] -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-border shadow-md items-center justify-center text-foreground hover:bg-muted transition-colors duration-200 z-10"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
         </button>
         <button
-          onClick={() => emblaApi?.scrollNext()}
-          className="hidden sm:flex absolute right-2 lg:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 backdrop-blur-sm items-center justify-center text-white transition-all duration-200 disabled:opacity-30"
-          disabled={!canNext}
+          onClick={scrollNext}
+          className="hidden sm:flex absolute right-2 lg:right-6 top-[45%] -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-border shadow-md items-center justify-center text-foreground hover:bg-muted transition-colors duration-200 z-10"
           aria-label="Next"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       {/* Swipe hint — mobile only */}
-      <p className="text-center text-white/35 text-[10px] tracking-widest uppercase mt-4 sm:hidden">
+      <p className="sm:hidden text-center text-muted-foreground text-[9px] tracking-[3px] uppercase mt-3">
         ← Swipe to explore →
       </p>
 
       {/* ── CTA ── */}
-      <div className="text-center mt-8 sm:mt-10 px-4">
+      <div className="text-center mt-8 px-4">
         <a
           href={igUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-white font-semibold text-sm border border-white/30 hover:bg-white/10 transition-colors duration-300"
+          className="inline-flex items-center gap-2 px-7 py-2.5 text-xs font-bold tracking-widest uppercase border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
         >
-          <Instagram className="w-4 h-4" />
-          View All Reels
+          <Instagram className="w-3.5 h-3.5" />
+          View on Instagram
         </a>
       </div>
+
     </section>
   )
 }

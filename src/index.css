@@ -29,9 +29,15 @@
   h1, h2, h3, h4 { @apply font-serif; }
 }
 
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .animate-marquee { animation: marquee 22s linear infinite; }
 }
 
 @layer components {

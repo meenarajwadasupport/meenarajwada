@@ -129,14 +129,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Add to Cart — full width, mobile only */}
-        <button
-          onClick={handleQuickAdd}
-          className="md:hidden mt-3 w-full flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors duration-200 active:scale-95"
-        >
-          <ShoppingBag className="w-3 h-3" />
-          Add to Cart
-        </button>
       </div>
 
     </div>

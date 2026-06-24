@@ -1,37 +1,44 @@
+import { Scissors, Sparkles, Gem } from 'lucide-react'
+
 const features = [
   {
-    emoji: '🪡',
+    icon: Scissors,
     title: 'Hand Crafted',
-    desc: 'While trends come and go, handmade jewellery has a timeless appeal that transcends fashion fads.',
+    desc: 'Timeless handmade jewellery that transcends fashion fads.',
   },
   {
-    emoji: '✨',
+    icon: Sparkles,
     title: 'Unique Designs',
-    desc: 'We work closely with customers to create bespoke designs that reflect their personal style and preferences.',
+    desc: 'Bespoke creations that reflect your personal style.',
   },
   {
-    emoji: '💎',
+    icon: Gem,
     title: 'High Quality',
-    desc: 'We use the finest quality materials, ensuring each piece is not only beautiful but also durable and long-lasting.',
+    desc: 'Finest materials — beautiful, durable, long-lasting.',
   },
 ]
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-14 bg-[#FAFAFA]">
-      <div className="max-w-5xl mx-auto px-6 sm:px-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 text-center">
-          {features.map(f => (
-            <div key={f.title} className="flex flex-col items-center px-4">
-              {/* Emoji icon */}
-              <span className="text-4xl sm:text-5xl mb-4" role="img" aria-label={f.title}>
-                {f.emoji}
-              </span>
-              <h3 className="text-base font-bold text-foreground mb-3">{f.title}</h3>
-              <p className="text-sm text-foreground/60 leading-relaxed max-w-[260px]">{f.desc}</p>
+    <section className="py-12 sm:py-14 bg-[#FAFAFA]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-10">
+
+        {/* Always 3-col — compact on mobile, spacious on desktop */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-8 text-center">
+          {features.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex flex-col items-center">
+              {/* Icon circle */}
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 flex-shrink-0">
+                <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-primary" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-[11px] sm:text-base font-bold text-foreground mb-1 sm:mb-2 leading-tight">{title}</h3>
+              <p className="hidden sm:block text-sm text-foreground/60 leading-relaxed max-w-[220px]">{desc}</p>
+              {/* Mobile: short version */}
+              <p className="sm:hidden text-[9px] text-foreground/55 leading-snug px-1">{desc}</p>
             </div>
           ))}
         </div>
+
       </div>
     </section>
   )

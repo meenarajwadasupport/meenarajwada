@@ -8,23 +8,21 @@ export default function AnnouncementBanner() {
     || 'Handmade with Love  ✦  Customized Just for You  ✦  Pan India Shipping  ✦  Free Shipping on Orders ₹999+'
 
   return (
-    <div className="bg-primary overflow-hidden" style={{ height: '28px' }}>
-      {/* line-height = container height centres text reliably on all mobile browsers */}
+    <div className="bg-primary overflow-hidden" style={{ height: '30px' }}>
       <div
-        className="inline-flex whitespace-nowrap animate-marquee"
-        style={{ willChange: 'transform', height: '28px', lineHeight: '28px' }}
+        className="animate-marquee"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          height: '30px',
+          width: 'max-content',
+          willChange: 'transform',
+        }}
       >
-        <span
-          className="text-white text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10"
-          style={{ lineHeight: '28px' }}
-        >
+        <span style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
           {base}
         </span>
-        <span
-          aria-hidden
-          className="text-white text-[9px] font-medium tracking-[0.18em] uppercase whitespace-nowrap px-10"
-          style={{ lineHeight: '28px' }}
-        >
+        <span aria-hidden style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
           {base}
         </span>
       </div>

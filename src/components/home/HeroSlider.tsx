@@ -165,6 +165,19 @@ export default function HeroSlider() {
         </>
       )}
 
+      {/* ── BOTTOM TICKER STRIP ── */}
+      <div className="absolute bottom-0 left-0 right-0 overflow-hidden flex items-center" style={{ height: '28px', background: 'linear-gradient(90deg, #7D1935 0%, #9e2044 50%, #7D1935 100%)' }}>
+        <div className="inline-flex whitespace-nowrap animate-marquee" style={{ willChange: 'transform', height: '28px', lineHeight: '28px' }}>
+          {[...Array(3)].map((_, rep) =>
+            TICKER_ITEMS.map((msg, i) => (
+              <span key={`${rep}-${i}`} className="text-white text-[9px] font-medium tracking-[0.25em] uppercase whitespace-nowrap mx-10" style={{ lineHeight: '28px' }}>
+                {msg}
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
     </section>
   )
 }

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 export default function AdminBlog() {
   const qc = useQueryClient()
@@ -65,9 +66,9 @@ export default function AdminBlog() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-2xl my-4">
             <div className="flex justify-between mb-4"><h2 className="font-semibold">{editing ? 'Edit' : 'New'} Post</h2><button onClick={() => setShowForm(false)}><X className="w-5 h-5" /></button></div>
             <div className="space-y-3">
+              <ImageUpload value={form.cover_image} onChange={url => setForm(f => ({ ...f, cover_image: url }))} bucket="media" folder="blog" label="Cover Image" aspect="wide" />
               <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Post Title" className={inputCls} />
               <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="Slug (auto)" className={inputCls} />
-              <input value={form.cover_image} onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))} placeholder="Cover Image URL" className={inputCls} />
               <textarea value={form.excerpt} onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))} placeholder="Short excerpt" rows={2} className={`${inputCls} resize-none`} />
               <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} placeholder="Full content" rows={10} className={`${inputCls} resize-none`} />
               <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" checked={form.is_published} onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))} className="accent-primary" />Published</label>

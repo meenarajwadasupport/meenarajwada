@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 export default function AdminHeroSlider() {
   const qc = useQueryClient()
@@ -23,16 +24,19 @@ export default function AdminHeroSlider() {
 
   const save = useMutation({
     mutationFn: async () => {
+      if (!form.title.trim()) throw new Error('Title is required')
+      if (!form.image_url) throw new Error('Please upload an image')
       const p = { title: form.title, subtitle: form.subtitle, image_url: form.image_url, cta_text: form.cta_text, cta_url: form.cta_url, display_order: Number(form.display_order), is_active: form.is_active }
       if (editing) await supabase.from('hero_slides').update(p).eq('id', editing.id)
       else await supabase.from('hero_slides').insert(p)
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-hero-slides'] }); toast.success('Saved'); setShowForm(false) },
+    onError: (e: any) => toast.error(e.message),
   })
 
   const del = useMutation({
     mutationFn: async (id: string) => supabase.from('hero_slides').delete().eq('id', id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-hero-slides'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-hero-slides'] }); toast.success('Deleted') },
   })
 
   const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-white'
@@ -43,40 +47,62 @@ export default function AdminHeroSlider() {
         <h1 className="font-serif text-2xl font-bold">Hero Slider</h1>
         <button onClick={() => openForm()} className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"><Plus className="w-4 h-4" /> Add Slide</button>
       </div>
+
       <div className="space-y-4">
         {slides.map((s: any) => (
           <div key={s.id} className="bg-white rounded-xl border border-border overflow-hidden flex gap-4 p-4">
-            <img src={s.image_url} alt="" className="w-32 h-20 object-cover rounded-lg flex-shrink-0" />
+            {s.image_url
+              ? <img src={s.image_url} alt="" className="w-32 h-20 object-cover rounded-lg flex-shrink-0" />
+              : <div className="w-32 h-20 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center text-muted-foreground text-xs">No image</div>
+            }
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{s.title}</p>
-              <p className="text-xs text-muted-foreground">{s.subtitle}</p>
-              <p className="text-xs text-primary mt-1">{s.cta_text} → {s.cta_url}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{s.subtitle}</p>
+              {s.cta_text && <p className="text-xs text-primary mt-1">{s.cta_text} → {s.cta_url}</p>}
+              <p className="text-xs text-muted-foreground mt-1">Order: {s.display_order}</p>
             </div>
-            <div className="flex gap-2 items-start">
+            <div className="flex flex-col gap-2 items-end">
               <span className={`text-xs px-2 py-0.5 rounded-full ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{s.is_active ? 'Active' : 'Off'}</span>
-              <button onClick={() => openForm(s)}><Pencil className="w-4 h-4" /></button>
-              <button onClick={() => del.mutate(s.id)} className="text-red-500"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex gap-2">
+                <button onClick={() => openForm(s)} className="p-1.5 hover:bg-muted rounded"><Pencil className="w-4 h-4" /></button>
+                <button onClick={() => del.mutate(s.id)} className="p-1.5 hover:bg-red-50 rounded text-red-500"><Trash2 className="w-4 h-4" /></button>
+              </div>
             </div>
           </div>
         ))}
-        {!slides.length && <p className="text-muted-foreground">No slides yet.</p>}
+        {!slides.length && <p className="text-muted-foreground text-sm">No slides yet. Add your first hero slide.</p>}
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg">
-            <div className="flex justify-between mb-4"><h2 className="font-semibold">{editing ? 'Edit' : 'New'} Slide</h2><button onClick={() => setShowForm(false)}><X className="w-5 h-5" /></button></div>
-            <div className="space-y-3">
-              <textarea value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Slide Title (use \n for line break)" rows={2} className={`${inputCls} resize-none`} />
-              <input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} placeholder="Subtitle" className={inputCls} />
-              <input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="Image URL" className={inputCls} />
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 px-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg my-4">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="font-semibold text-lg">{editing ? 'Edit' : 'New'} Slide</h2>
+              <button onClick={() => setShowForm(false)} className="p-1 hover:bg-muted rounded"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <ImageUpload
+                value={form.image_url}
+                onChange={url => setForm(f => ({ ...f, image_url: url }))}
+                bucket="media"
+                folder="hero-slides"
+                label="Slide Image"
+                aspect="wide"
+              />
+              <textarea value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Slide Title" rows={2} className={`${inputCls} resize-none`} />
+              <input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} placeholder="Subtitle (optional)" className={inputCls} />
               <div className="grid grid-cols-2 gap-2">
                 <input value={form.cta_text} onChange={e => setForm(f => ({ ...f, cta_text: e.target.value }))} placeholder="Button Text" className={inputCls} />
                 <input value={form.cta_url} onChange={e => setForm(f => ({ ...f, cta_url: e.target.value }))} placeholder="Button URL" className={inputCls} />
               </div>
-              <input value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} placeholder="Display Order" type="number" className={inputCls} />
-              <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="accent-primary" />Active</label>
-              <button onClick={() => save.mutate()} disabled={save.isPending} className="btn-primary w-full py-2.5 disabled:opacity-60">{save.isPending ? 'Saving…' : 'Save Slide'}</button>
+              <input value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} placeholder="Display Order" type="number" min="1" className={inputCls} />
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="accent-primary w-4 h-4" />
+                Active (visible on website)
+              </label>
+              <button onClick={() => save.mutate()} disabled={save.isPending} className="btn-primary w-full py-2.5 disabled:opacity-60">
+                {save.isPending ? 'Saving…' : 'Save Slide'}
+              </button>
             </div>
           </div>
         </div>

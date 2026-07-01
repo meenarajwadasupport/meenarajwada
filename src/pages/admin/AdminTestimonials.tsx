@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, Star } from 'lucide-react'
 import { toast } from 'sonner'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 export default function AdminTestimonials() {
   const qc = useQueryClient()
@@ -65,7 +66,7 @@ export default function AdminTestimonials() {
               <input value={form.customer_name} onChange={e => setForm(f => ({ ...f, customer_name: e.target.value }))} placeholder="Customer Name" className={inputCls} />
               <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Location (e.g. Mumbai)" className={inputCls} />
               <textarea value={form.review} onChange={e => setForm(f => ({ ...f, review: e.target.value }))} placeholder="Review text" rows={4} className={`${inputCls} resize-none`} />
-              <input value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))} placeholder="Avatar URL (optional)" className={inputCls} />
+              <ImageUpload value={form.avatar} onChange={url => setForm(f => ({ ...f, avatar: url }))} bucket="media" folder="testimonials" label="Customer Photo (optional)" aspect="square" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={form.rating} onChange={e => setForm(f => ({ ...f, rating: e.target.value }))} className={inputCls}>{[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Stars</option>)}</select>
                 <input value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} placeholder="Order" type="number" className={inputCls} />

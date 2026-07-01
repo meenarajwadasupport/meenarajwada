@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 export default function AdminCategories() {
   const qc = useQueryClient()
@@ -65,9 +66,9 @@ export default function AdminCategories() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="flex justify-between mb-4"><h2 className="font-semibold">{editing ? 'Edit' : 'New'} Category</h2><button onClick={() => setShowForm(false)}><X className="w-5 h-5" /></button></div>
             <div className="space-y-3">
+              <ImageUpload value={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} bucket="media" folder="categories" label="Category Image" aspect="square" />
               <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Category Name" className={inputCls} />
               <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="Slug (auto)" className={inputCls} />
-              <input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="Image URL" className={inputCls} />
               <input value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} placeholder="Display Order" type="number" className={inputCls} />
               <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="accent-primary" />Active</label>
               <button onClick={() => save.mutate()} disabled={save.isPending} className="btn-primary w-full py-2.5 disabled:opacity-60">{save.isPending ? 'Saving…' : 'Save'}</button>

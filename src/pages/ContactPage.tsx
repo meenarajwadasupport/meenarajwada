@@ -21,6 +21,12 @@ export default function ContactPage() {
   async function onSubmit(data: FormData) {
     const { error } = await supabase.from('contact_messages').insert(data)
     if (error) { toast.error('Could not send. Please try again.'); return }
+    // Send auto-reply email via Resend
+    fetch('/api/send-contact-reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).catch(() => {}) // silent fail — message already saved
     toast.success('Message sent! We\'ll reply within 24 hours.')
     reset()
   }

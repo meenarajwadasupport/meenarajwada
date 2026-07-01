@@ -5,6 +5,29 @@ import { formatPrice } from '@/lib/utils'
 import { Plus, Pencil, Trash2, X, Upload, Search, ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
+// Compress image to WebP before upload
+async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      canvas.toBlob((blob) => resolve(blob!), 'image/webp', quality)
+    }
+    img.src = url
+  })
+}
+
+async function ensureBucket(bucket: string) {
+  const { error } = await supabase.storage.createBucket(bucket, { public: true, fileSizeLimit: 10485760 })
+  if (error && !error.message?.toLowerCase().includes('already exist')) throw error
+}
+
 const BLANK_FORM = {
   name: '', slug: '', description: '', price: '', mrp: '', material: '',
   category_id: '', sizes: '', stock: '10',
@@ -69,17 +92,32 @@ export default function AdminProducts() {
     setShowForm(true)
   }
 
-  // Upload image to Supabase Storage
+  // Upload images to Supabase Storage (compressed to WebP, auto-creates bucket)
   async function handleImageUpload(files: FileList) {
     setUploading(true)
     const urls: string[] = []
+    let bucketReady = false
     for (const file of Array.from(files)) {
-      const ext  = file.name.split('.').pop()
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { data, error } = await supabase.storage.from('products').upload(path, file, { upsert: true })
-      if (error) { toast.error(`Upload failed: ${file.name}`); continue }
-      const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(data.path)
-      urls.push(publicUrl)
+      try {
+        const blob = await compressToWebP(file)
+        const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+        let { data, error } = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
+        // Auto-create bucket if missing, then retry
+        if (error && !bucketReady) {
+          const msg = (error.message ?? '').toLowerCase()
+          if (msg.includes('bucket') || (error as any).statusCode === 404) {
+            await ensureBucket('products')
+            bucketReady = true
+            const retry = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
+            data = retry.data; error = retry.error
+          }
+        }
+        if (error) { toast.error(`Upload failed: ${file.name}`); continue }
+        const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(data!.path)
+        urls.push(publicUrl)
+      } catch (e: any) {
+        toast.error(e.message ?? `Upload failed: ${file.name}`)
+      }
     }
     setImages(prev => [...prev, ...urls])
     setUploading(false)

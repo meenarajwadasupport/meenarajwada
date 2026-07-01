@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, Mail, LogOut, Menu, X, Sparkles,
-  ExternalLink,
+  ExternalLink, HelpCircle, Megaphone,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +18,8 @@ const navItems = [
   { to: '/admin/hero-slider',   label: 'Hero Slider',    icon: Image },
   { to: '/admin/testimonials',  label: 'Testimonials',   icon: Star },
   { to: '/admin/blog',          label: 'Blog',           icon: BookOpen },
+  { to: '/admin/promos',        label: 'Promos',         icon: Megaphone },
+  { to: '/admin/faqs',          label: 'FAQs',           icon: HelpCircle },
   { to: '/admin/messages',      label: 'Messages',       icon: MessageSquare },
   { to: '/admin/newsletter',    label: 'Newsletter',     icon: Mail },
   { to: '/admin/site-settings', label: 'Site Settings',  icon: Settings },

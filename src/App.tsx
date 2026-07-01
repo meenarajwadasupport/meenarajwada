@@ -46,6 +46,8 @@ import AdminSiteSettings from '@/pages/admin/AdminSiteSettings'
 import AdminMessages from '@/pages/admin/AdminMessages'
 import AdminNewsletter from '@/pages/admin/AdminNewsletter'
 import AdminCustomOrders from '@/pages/admin/AdminCustomOrders'
+import AdminFaqs from '@/pages/admin/AdminFaqs'
+import AdminPromos from '@/pages/admin/AdminPromos'
 
 export default function App() {
   return (
@@ -96,6 +98,8 @@ export default function App() {
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="newsletter" element={<AdminNewsletter />} />
                 <Route path="custom-orders" element={<AdminCustomOrders />} />
+                <Route path="faqs" element={<AdminFaqs />} />
+                <Route path="promos" element={<AdminPromos />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

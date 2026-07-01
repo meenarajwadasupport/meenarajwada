@@ -12,7 +12,7 @@ interface Props {
   aspect?: 'square' | 'wide' | 'free'
 }
 
-// Compress image using canvas before upload
+// Compress image using canvas before upload (outputs WebP, max 1200px wide)
 async function compressImage(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
   return new Promise((resolve) => {
     const img = new Image()
@@ -20,8 +20,8 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.82): Promi
     img.onload = () => {
       const scale = Math.min(1, maxWidth / img.width)
       const canvas = document.createElement('canvas')
-      canvas.width = img.width * scale
-      canvas.height = img.height * scale
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
       const ctx = canvas.getContext('2d')!
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
@@ -31,7 +31,64 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.82): Promi
   })
 }
 
-export default function ImageUpload({ value, onChange, bucket, folder = '', label = 'Image', aspect = 'free' }: Props) {
+// Returns true if the error looks like a missing bucket
+function isBucketMissing(err: any): boolean {
+  const msg: string = (err?.message ?? err?.error ?? '').toLowerCase()
+  return (
+    msg.includes('bucket not found') ||
+    msg.includes('no such bucket') ||
+    err?.statusCode === 404 ||
+    err?.error === 'Bucket not found'
+  )
+}
+
+// Try to create the bucket with public access
+async function createPublicBucket(bucket: string): Promise<void> {
+  const { error } = await supabase.storage.createBucket(bucket, {
+    public: true,
+    fileSizeLimit: 10485760, // 10 MB
+  })
+  // Ignore "already exists" — that just means a race condition and we're fine
+  if (error && !error.message?.toLowerCase().includes('already exist')) {
+    throw new Error(
+      `Could not auto-create bucket "${bucket}". ` +
+      `Please go to Supabase Dashboard → Storage → New bucket → ` +
+      `name it "${bucket}" → enable Public, then try again.`
+    )
+  }
+}
+
+// Upload blob to Storage, auto-creating the bucket on first use
+async function uploadToStorage(bucket: string, path: string, blob: Blob): Promise<string> {
+  let { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(path, blob, { contentType: 'image/webp', upsert: true })
+
+  // Bucket doesn't exist yet — create it and retry once
+  if (error && isBucketMissing(error)) {
+    await createPublicBucket(bucket)
+    const retry = await supabase.storage
+      .from(bucket)
+      .upload(path, blob, { contentType: 'image/webp', upsert: true })
+    data = retry.data
+    error = retry.error
+  }
+
+  if (error) throw error
+  if (!data) throw new Error('Upload returned no data')
+
+  const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
+  return publicUrl
+}
+
+export default function ImageUpload({
+  value,
+  onChange,
+  bucket,
+  folder = '',
+  label = 'Image',
+  aspect = 'free',
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -43,12 +100,11 @@ export default function ImageUpload({ value, onChange, bucket, folder = '', labe
       const compressed = await compressImage(file)
       const prefix = folder ? `${folder}/` : ''
       const path = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
-      const { data, error } = await supabase.storage.from(bucket).upload(path, compressed, { contentType: 'image/webp', upsert: true })
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
+      const publicUrl = await uploadToStorage(bucket, path, compressed)
       onChange(publicUrl)
       toast.success('Image uploaded')
     } catch (e: any) {
+      console.error('ImageUpload error:', e)
       toast.error(e.message ?? 'Upload failed')
     } finally {
       setUploading(false)
@@ -68,7 +124,10 @@ export default function ImageUpload({ value, onChange, bucket, folder = '', labe
     if (file) handleFile(file)
   }
 
-  const aspectClass = aspect === 'square' ? 'aspect-square' : aspect === 'wide' ? 'aspect-video' : 'aspect-[4/3]'
+  const aspectClass =
+    aspect === 'square' ? 'aspect-square' :
+    aspect === 'wide'   ? 'aspect-video'  :
+    'aspect-[4/3]'
 
   return (
     <div className="space-y-1.5">
@@ -119,9 +178,9 @@ export default function ImageUpload({ value, onChange, bucket, folder = '', labe
           ) : (
             <>
               <ImageIcon className="w-7 h-7 text-muted-foreground" />
-              <div className="text-center">
+              <div className="text-center px-2">
                 <p className="text-xs font-medium text-foreground">Click or drag to upload</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG, WebP · Auto-compressed</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">JPG, PNG, WebP · Auto-compressed to WebP</p>
               </div>
             </>
           )}

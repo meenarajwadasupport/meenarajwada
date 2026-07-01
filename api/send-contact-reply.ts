@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' })
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: 'Meena Rajwada <noreply@meenarajwada.com>',
       to: email,
       replyTo: 'muakhhir@gmail.com',
@@ -53,8 +53,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>`,
     })
 
-    return res.status(200).json({ success: true })
+    if (error) {
+      console.error('Resend error:', JSON.stringify(error))
+      return res.status(500).json({ error })
+    }
+
+    console.log('Email sent:', data?.id)
+    return res.status(200).json({ success: true, id: data?.id })
   } catch (err: any) {
+    console.error('Catch error:', err.message)
     return res.status(500).json({ error: err.message })
   }
 }

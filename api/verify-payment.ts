@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             </tr>`)
           .join('')
 
-        await resend.emails.send({
+        const { error: emailError } = await resend.emails.send({
           from: 'Meena Rajwada <noreply@meenarajwada.com>',
           to: order.customer_email,
           replyTo: 'muakhhir@gmail.com',
@@ -121,7 +121,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>`,
         })
 
-        await supabase.from('orders').update({ email_sent: true }).eq('id', orderId)
+        if (emailError) {
+          console.error('Resend order email error:', JSON.stringify(emailError))
+        } else {
+          await supabase.from('orders').update({ email_sent: true }).eq('id', orderId)
+        }
       }
     }
 

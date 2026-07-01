@@ -43,25 +43,41 @@ async function uploadProductImage(file: File): Promise<string> {
 
 // ── Sync in_hero_slider flag to hero_slides table ───────────────────────────
 async function syncHeroSlide(product: any, enable: boolean) {
-  if (enable && product.images?.[0]) {
-    // Upsert a slide for this product (keyed by product id in cta_url)
-    const existing = await supabase.from('hero_slides').select('id').eq('cta_url', `/product/${product.slug}`).maybeSingle()
-    if (!existing.data) {
-      await supabase.from('hero_slides').insert({
+  const slug = product.slug || product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  if (!slug) return
+
+  const ctaUrl = `/product/${slug}`
+
+  if (enable) {
+    const imageUrl = product.images?.[0] ?? ''
+    const { data: existing } = await supabase
+      .from('hero_slides').select('id').eq('cta_url', ctaUrl).maybeSingle()
+
+    if (existing) {
+      // Update existing slide (image may have changed)
+      const { error } = await supabase.from('hero_slides').update({
         title: product.name,
         subtitle: product.material ?? '',
-        image_url: product.images[0],
+        image_url: imageUrl,
+        is_active: true,
+      }).eq('id', existing.id)
+      if (error) throw new Error(`Hero slide update failed: ${error.message}`)
+    } else {
+      const { error } = await supabase.from('hero_slides').insert({
+        title: product.name,
+        subtitle: product.material ?? '',
+        image_url: imageUrl,
         cta_text: 'Shop Now',
-        cta_url: `/product/${product.slug}`,
+        cta_url: ctaUrl,
         display_order: 99,
         is_active: true,
       })
+      if (error) throw new Error(`Hero slide create failed: ${error.message}\n\nMake sure you ran supabase-setup.sql in Supabase SQL Editor.`)
     }
-  } else if (!enable) {
-    // Remove slide for this product if it exists
-    if (product.slug) {
-      await supabase.from('hero_slides').delete().eq('cta_url', `/product/${product.slug}`)
-    }
+  } else {
+    // Remove slide for this product
+    const { error } = await supabase.from('hero_slides').delete().eq('cta_url', ctaUrl)
+    if (error) throw new Error(`Hero slide remove failed: ${error.message}`)
   }
 }
 

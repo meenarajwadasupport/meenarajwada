@@ -81,7 +81,31 @@ DROP POLICY IF EXISTS "Auth manage faqs" ON faqs;
 CREATE POLICY "Public read faqs" ON faqs FOR SELECT USING (true);
 CREATE POLICY "Auth manage faqs" ON faqs FOR ALL   USING (auth.role() = 'authenticated');
 
--- ── 5. Featured Promos ──────────────────────────────────────
+-- ── 5. Site Settings ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS site_settings (
+  id                   uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  announcement_text    text        DEFAULT '',
+  announcement_active  boolean     DEFAULT true,
+  whatsapp_number      text        DEFAULT '',
+  instagram_url        text        DEFAULT '',
+  facebook_url         text        DEFAULT '',
+  youtube_url          text        DEFAULT '',
+  pinterest_url        text        DEFAULT '',
+  updated_at           timestamptz DEFAULT now()
+);
+
+-- Seed one row so admin can always UPDATE (never INSERT fails)
+INSERT INTO site_settings (announcement_text, announcement_active)
+VALUES ('Free shipping on orders above ₹999', true)
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read settings"  ON site_settings;
+DROP POLICY IF EXISTS "Auth manage settings"  ON site_settings;
+CREATE POLICY "Public read settings" ON site_settings FOR SELECT USING (true);
+CREATE POLICY "Auth manage settings" ON site_settings FOR ALL   USING (auth.role() = 'authenticated');
+
+-- ── 6. Featured Promos ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS featured_promos (
   id            uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
   title         text        NOT NULL,

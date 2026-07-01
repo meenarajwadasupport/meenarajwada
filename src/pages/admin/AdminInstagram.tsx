@@ -78,7 +78,7 @@ export default function AdminInstagram() {
           </h1>
           <div className="flex items-center gap-3 mt-0.5">
             <p className="text-sm text-muted-foreground">{(posts as any[]).filter((p: any) => p.is_active).length} active reels shown on homepage</p>
-            <a href="https://www.instagram.com/meena.rajwada/" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.instagram.com/meena.rajwada?igsh=aGRoMngyODhrZjlz" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-sm text-pink-600 hover:text-pink-700 font-semibold">
               <ExternalLink className="w-3.5 h-3.5" /> @meena.rajwada
             </a>
@@ -131,7 +131,7 @@ export default function AdminInstagram() {
                   <td className="px-4 py-3 font-mono font-bold text-sm">{post.reel_id}</td>
                   <td className="px-4 py-3 text-muted-foreground max-w-[180px] truncate">{post.caption || '—'}</td>
                   <td className="px-4 py-3">
-                    <a href={`https://www.instagram.com/meena.rajwada/reel/${post.reel_id}/`} target="_blank" rel="noopener noreferrer"
+                    <a href={`https://www.instagram.com/meena.rajwada?igsh=aGRoMngyODhrZjlzreel/${post.reel_id}/`} target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-pink-600 hover:text-pink-700 text-xs">
                       <ExternalLink className="w-3 h-3" /> View
                     </a>

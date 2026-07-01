@@ -9,7 +9,7 @@ export default function AdminHeroSlider() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ title: '', subtitle: '', image_url: '', cta_text: '', cta_url: '', display_order: '1', is_active: true })
+  const [form, setForm] = useState({ title: '', subtitle: '', image_url: '', video_url: '', cta_text: '', cta_url: '', display_order: '1', is_active: true })
 
   const { data: slides = [] } = useQuery({
     queryKey: ['admin-hero-slides'],
@@ -17,8 +17,8 @@ export default function AdminHeroSlider() {
   })
 
   function openForm(s?: any) {
-    if (s) { setEditing(s); setForm({ title: s.title, subtitle: s.subtitle ?? '', image_url: s.image_url, cta_text: s.cta_text ?? '', cta_url: s.cta_url ?? '', display_order: s.display_order, is_active: s.is_active }) }
-    else { setEditing(null); setForm({ title: '', subtitle: '', image_url: '', cta_text: '', cta_url: '', display_order: '1', is_active: true }) }
+    if (s) { setEditing(s); setForm({ title: s.title, subtitle: s.subtitle ?? '', image_url: s.image_url, video_url: s.video_url ?? '', cta_text: s.cta_text ?? '', cta_url: s.cta_url ?? '', display_order: s.display_order, is_active: s.is_active }) }
+    else { setEditing(null); setForm({ title: '', subtitle: '', image_url: '', video_url: '', cta_text: '', cta_url: '', display_order: '1', is_active: true }) }
     setShowForm(true)
   }
 
@@ -26,7 +26,7 @@ export default function AdminHeroSlider() {
     mutationFn: async () => {
       if (!form.title.trim()) throw new Error('Title is required')
       if (!form.image_url) throw new Error('Please upload an image')
-      const p = { title: form.title, subtitle: form.subtitle, image_url: form.image_url, cta_text: form.cta_text, cta_url: form.cta_url, display_order: Number(form.display_order), is_active: form.is_active }
+      const p = { title: form.title, subtitle: form.subtitle, image_url: form.image_url, video_url: form.video_url.trim() || null, cta_text: form.cta_text, cta_url: form.cta_url, display_order: Number(form.display_order), is_active: form.is_active }
       if (editing) await supabase.from('hero_slides').update(p).eq('id', editing.id)
       else await supabase.from('hero_slides').insert(p)
     },
@@ -58,6 +58,7 @@ export default function AdminHeroSlider() {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{s.title}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{s.subtitle}</p>
+              {s.video_url && <p className="text-[10px] text-muted-foreground mt-0.5">📹 Video slide</p>}
               {s.cta_text && <p className="text-xs text-primary mt-1">{s.cta_text} → {s.cta_url}</p>}
               <p className="text-xs text-muted-foreground mt-1">Order: {s.display_order}</p>
             </div>
@@ -91,6 +92,11 @@ export default function AdminHeroSlider() {
               />
               <textarea value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Slide Title" rows={2} className={`${inputCls} resize-none`} />
               <input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} placeholder="Subtitle (optional)" className={inputCls} />
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Background Video URL (optional)</label>
+                <input value={form.video_url} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} placeholder="https://... .mp4 — plays behind image as fallback" className={inputCls} />
+                <p className="text-[10px] text-muted-foreground mt-1">If provided, video plays on loop. Image is shown on mobile / while video loads.</p>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <input value={form.cta_text} onChange={e => setForm(f => ({ ...f, cta_text: e.target.value }))} placeholder="Button Text" className={inputCls} />
                 <input value={form.cta_url} onChange={e => setForm(f => ({ ...f, cta_url: e.target.value }))} placeholder="Button URL" className={inputCls} />

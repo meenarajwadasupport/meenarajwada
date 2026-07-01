@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, Mail, LogOut, Menu, X, Sparkles,
-  ExternalLink, HelpCircle, Megaphone,
+  ExternalLink, HelpCircle, Megaphone, Instagram,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/admin/testimonials',  label: 'Testimonials',   icon: Star },
   { to: '/admin/blog',          label: 'Blog',           icon: BookOpen },
   { to: '/admin/promos',        label: 'Promos',         icon: Megaphone },
+  { to: '/admin/instagram',     label: 'Instagram',      icon: Instagram },
   { to: '/admin/faqs',          label: 'FAQs',           icon: HelpCircle },
   { to: '/admin/messages',      label: 'Messages',       icon: MessageSquare },
   { to: '/admin/newsletter',    label: 'Newsletter',     icon: Mail },

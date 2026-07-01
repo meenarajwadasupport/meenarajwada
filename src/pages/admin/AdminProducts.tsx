@@ -23,9 +23,9 @@ async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Prom
   })
 }
 
-async function ensureBucket(bucket: string) {
-  const { error } = await supabase.storage.createBucket(bucket, { public: true, fileSizeLimit: 10485760 })
-  if (error && !error.message?.toLowerCase().includes('already exist')) throw error
+async function ensureBucket() {
+  const res = await fetch('/api/setup-storage', { method: 'POST' })
+  if (!res.ok) throw new Error('Storage setup failed')
 }
 
 const BLANK_FORM = {
@@ -106,7 +106,7 @@ export default function AdminProducts() {
         if (error && !bucketReady) {
           const msg = (error.message ?? '').toLowerCase()
           if (msg.includes('bucket') || (error as any).statusCode === 404) {
-            await ensureBucket('products')
+            await ensureBucket()
             bucketReady = true
             const retry = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
             data = retry.data; error = retry.error

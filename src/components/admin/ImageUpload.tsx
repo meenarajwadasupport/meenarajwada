@@ -42,31 +42,21 @@ function isBucketMissing(err: any): boolean {
   )
 }
 
-// Try to create the bucket with public access
-async function createPublicBucket(bucket: string): Promise<void> {
-  const { error } = await supabase.storage.createBucket(bucket, {
-    public: true,
-    fileSizeLimit: 10485760, // 10 MB
-  })
-  // Ignore "already exists" — that just means a race condition and we're fine
-  if (error && !error.message?.toLowerCase().includes('already exist')) {
-    throw new Error(
-      `Could not auto-create bucket "${bucket}". ` +
-      `Please go to Supabase Dashboard → Storage → New bucket → ` +
-      `name it "${bucket}" → enable Public, then try again.`
-    )
-  }
+// Call the server-side API to create the bucket (uses service role key)
+async function setupBuckets(): Promise<void> {
+  const res = await fetch('/api/setup-storage', { method: 'POST' })
+  if (!res.ok) throw new Error('Storage setup failed — please try again')
 }
 
-// Upload blob to Storage, auto-creating the bucket on first use
+// Upload blob to Storage; if bucket missing, create via API and retry once
 async function uploadToStorage(bucket: string, path: string, blob: Blob): Promise<string> {
   let { data, error } = await supabase.storage
     .from(bucket)
     .upload(path, blob, { contentType: 'image/webp', upsert: true })
 
-  // Bucket doesn't exist yet — create it and retry once
+  // Bucket doesn't exist — create via server API then retry
   if (error && isBucketMissing(error)) {
-    await createPublicBucket(bucket)
+    await setupBuckets()
     const retry = await supabase.storage
       .from(bucket)
       .upload(path, blob, { contentType: 'image/webp', upsert: true })

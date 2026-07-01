@@ -48,6 +48,7 @@ import AdminNewsletter from '@/pages/admin/AdminNewsletter'
 import AdminCustomOrders from '@/pages/admin/AdminCustomOrders'
 import AdminFaqs from '@/pages/admin/AdminFaqs'
 import AdminPromos from '@/pages/admin/AdminPromos'
+import AdminInstagram from '@/pages/admin/AdminInstagram'
 
 export default function App() {
   return (
@@ -100,6 +101,7 @@ export default function App() {
                 <Route path="custom-orders" element={<AdminCustomOrders />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="promos" element={<AdminPromos />} />
+                <Route path="instagram" element={<AdminInstagram />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

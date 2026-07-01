@@ -52,9 +52,14 @@ export default function AdminSiteSettings() {
   const { data, isLoading, error: loadError } = useQuery({
     queryKey: ['site-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').maybeSingle()
+      // limit(1) safely handles 0 or multiple rows (maybeSingle fails on multiple)
+      const { data: rows, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(1)
       if (error) throw new Error(error.message)
-      return data as Settings | null
+      return (rows?.[0] ?? null) as Settings | null
     },
   })
 

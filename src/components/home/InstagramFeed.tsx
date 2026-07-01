@@ -45,7 +45,7 @@ const POSTS = [
 
 export default function InstagramFeed() {
   const { data: settings } = useSiteSettings()
-  const igUrl = settings?.instagram_url ?? 'https://instagram.com/meena.rajwada'
+  const igUrl = settings?.instagram_url ?? 'https://www.instagram.com/meena.rajwada?igsh=aGRoMngyODhrZjlz'
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'start', slidesToScroll: 1 },

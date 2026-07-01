@@ -4,6 +4,11 @@
 -- Safe to run multiple times (IF NOT EXISTS / ON CONFLICT)
 -- ============================================================
 
+-- ── 0. Reset site_settings (old table had wrong schema) ─────
+-- Drop and recreate so the correct columns are guaranteed.
+-- Your announcement/whatsapp data will be re-entered via admin.
+DROP TABLE IF EXISTS site_settings CASCADE;
+
 -- ── 1. Storage Buckets ──────────────────────────────────────
 INSERT INTO storage.buckets (id, name, public, file_size_limit)
 VALUES

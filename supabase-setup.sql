@@ -35,7 +35,40 @@ CREATE POLICY "Update in products"   ON storage.objects FOR UPDATE USING (bucket
 CREATE POLICY "Delete from media"    ON storage.objects FOR DELETE USING (bucket_id = 'media');
 CREATE POLICY "Delete from products" ON storage.objects FOR DELETE USING (bucket_id = 'products');
 
--- ── 2. Hero Slides ──────────────────────────────────────────
+-- ── 2. Categories ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS categories (
+  id            uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  name          text        NOT NULL,
+  slug          text        NOT NULL UNIQUE,
+  image_url     text        DEFAULT '',
+  display_order int         DEFAULT 1,
+  is_active     boolean     DEFAULT true,
+  created_at    timestamptz DEFAULT now()
+);
+
+-- Seed all 12 default categories (safe to re-run)
+INSERT INTO categories (name, slug, image_url, display_order, is_active) VALUES
+  ('Bangles',          'bangles',         'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=85', 1,  true),
+  ('Earrings',         'earrings',        'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=85', 2,  true),
+  ('Necklaces',        'necklaces',       'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=85', 3,  true),
+  ('Mangalsutra',      'mangalsutra',     'https://images.unsplash.com/photo-1573408301185-9519f94f9c10?w=400&q=85', 4,  true),
+  ('Maangtikka',       'maangtikka',      'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=85', 5,  true),
+  ('Rings',            'rings',           'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=85', 6,  true),
+  ('Anklets',          'anklets',         'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=400&q=85', 7,  true),
+  ('Nose Ring',        'nose-ring',       'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=85', 8,  true),
+  ('Bridal Set',       'bridal',          'https://images.unsplash.com/photo-1561828995-aa79a2db86dd?w=400&q=85', 9,  true),
+  ('Festive',          'festive',         'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&q=85', 10, true),
+  ('Custom Orders',    'custom-jewelry',  'https://images.unsplash.com/photo-1596944924591-630c44fa7a8a?w=400&q=85', 11, true),
+  ('Rajwada Heritage', 'rajwada-heritage','https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400&q=85', 12, true)
+ON CONFLICT (slug) DO NOTHING;
+
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read categories" ON categories;
+DROP POLICY IF EXISTS "Auth manage categories" ON categories;
+CREATE POLICY "Public read categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "Auth manage categories" ON categories FOR ALL USING (auth.role() = 'authenticated');
+
+-- ── 3. Hero Slides ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS hero_slides (
   id            uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
   title         text        NOT NULL,

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { ChevronDown, ChevronUp, Phone, Mail, IndianRupee, MessageSquare } from 'lucide-react'
+import { ChevronDown, ChevronUp, Phone, Mail, IndianRupee, MessageSquare, Loader2, Sparkles, MessageCircle } from 'lucide-react'
 
 const STATUSES = ['new', 'reviewing', 'quoted', 'confirmed', 'in_progress', 'completed', 'cancelled']
 
@@ -50,49 +50,74 @@ export default function AdminCustomOrders() {
     ...acc, [s]: orders.filter((o: any) => o.status === s).length
   }), {} as Record<string, number>)
 
+  function whatsappLink(order: any) {
+    const phone = String(order.customer_phone ?? '').replace(/[^0-9]/g, '')
+    const withCountry = phone.length === 10 ? `91${phone}` : phone
+    const text = encodeURIComponent(`Hello ${order.customer_name}, this is Meena Rajwada regarding your custom jewellery request. `)
+    return `https://wa.me/${withCountry}?text=${text}`
+  }
+
   return (
     <div className="space-y-5">
 
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Custom Order Requests</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{orders.length} requests total</p>
+        <h1 className="font-serif text-2xl font-bold text-foreground">Custom Order Requests</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {orders.length} request{orders.length === 1 ? '' : 's'}{filterStatus !== 'all' ? ` · filtered by "${filterStatus.replace('_', ' ')}"` : ''} · click a request to review and quote
+        </p>
       </div>
 
       {/* Status filter pills */}
       <div className="flex flex-wrap gap-2">
         <button onClick={() => setFilterStatus('all')}
-          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${filterStatus === 'all' ? 'bg-primary text-white border-primary' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'}`}>
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filterStatus === 'all' ? 'bg-primary text-white border-primary shadow-sm' : 'bg-white border-border text-muted-foreground hover:border-primary hover:text-primary'}`}>
           All ({orders.length})
         </button>
         {STATUSES.map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize transition-colors ${filterStatus === s ? `${STATUS_COLOR[s]} border-current` : 'border-border text-muted-foreground hover:border-primary hover:text-primary'}`}>
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border capitalize transition-colors ${filterStatus === s ? `${STATUS_COLOR[s]} border-current shadow-sm` : 'bg-white border-border text-muted-foreground hover:border-primary hover:text-primary'}`}>
             {s.replace('_', ' ')} ({counts[s] ?? 0})
           </button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="bg-white rounded-xl border border-border flex flex-col items-center justify-center py-20 gap-3">
+          <Loader2 className="w-7 h-7 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading requests…</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">No custom order requests yet.</div>
+        <div className="bg-white rounded-xl border border-dashed border-border flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Sparkles className="w-7 h-7 text-primary" />
+          </div>
+          <h3 className="font-serif text-lg font-semibold">No custom requests {filterStatus !== 'all' ? `with status "${filterStatus.replace('_', ' ')}"` : 'yet'}</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            When customers request bespoke jewellery through the custom order page, their requests will appear here for you to review and quote.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {orders.map((order: any) => (
-            <div key={order.id} className="bg-white rounded-2xl border border-border overflow-hidden">
+            <div key={order.id} className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-shadow ${expanded === order.id ? 'border-primary/40 shadow-md' : 'border-border hover:shadow-md'}`}>
 
               {/* Row */}
               <div
                 className="flex flex-wrap items-center gap-3 p-4 cursor-pointer hover:bg-background/50 transition-colors"
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}
               >
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm">{order.customer_name}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
-                  </p>
+                {/* Avatar + name */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-serif font-bold flex-shrink-0">
+                    {(order.customer_name ?? '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">{order.customer_name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -101,11 +126,11 @@ export default function AdminCustomOrders() {
                 </div>
 
                 {order.budget && (
-                  <span className="text-xs font-semibold text-primary">Budget: {order.budget}</span>
+                  <span className="text-xs font-semibold text-primary whitespace-nowrap">Budget: {order.budget}</span>
                 )}
 
                 {order.quoted_price && (
-                  <span className="flex items-center gap-0.5 text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                  <span className="flex items-center gap-0.5 text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full whitespace-nowrap">
                     <IndianRupee className="w-3 h-3" /> {order.quoted_price.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -123,14 +148,28 @@ export default function AdminCustomOrders() {
                   <div className="grid sm:grid-cols-2 gap-4">
 
                     {/* Customer Details */}
-                    <div className="space-y-2 text-sm">
+                    <div className="bg-white rounded-xl border border-border p-4 space-y-2 text-sm">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Customer</p>
-                      <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_email}</p>
-                      <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_phone}</p>
+                      <a href={`mailto:${order.customer_email}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                        <Mail className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_email}
+                      </a>
+                      <a href={`tel:${order.customer_phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                        <Phone className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_phone}
+                      </a>
+                      {order.customer_phone && (
+                        <a
+                          href={whatsappLink(order)}
+                          target="_blank" rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 mt-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" /> Chat on WhatsApp
+                        </a>
+                      )}
                     </div>
 
                     {/* Request Details */}
-                    <div className="space-y-1.5 text-sm">
+                    <div className="bg-white rounded-xl border border-border p-4 space-y-1.5 text-sm">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Request Details</p>
                       {order.design_type   && <p><span className="text-muted-foreground text-xs">Type:</span> {order.design_type}</p>}
                       {order.occasion      && <p><span className="text-muted-foreground text-xs">Occasion:</span> {order.occasion}</p>}
@@ -141,9 +180,9 @@ export default function AdminCustomOrders() {
                   </div>
 
                   {/* Description */}
-                  <div>
+                  <div className="bg-white rounded-xl border border-border p-4">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</p>
-                    <p className="text-sm text-foreground/80 leading-relaxed">{order.description}</p>
+                    <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{order.description}</p>
                   </div>
 
                   {/* Reference Images */}
@@ -153,7 +192,7 @@ export default function AdminCustomOrders() {
                       <div className="flex flex-wrap gap-2">
                         {order.reference_images.map((url: string, i: number) => (
                           <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                            <img src={url} alt="" className="w-16 h-16 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                            <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 hover:border-primary transition-all" />
                           </a>
                         ))}
                       </div>
@@ -161,14 +200,15 @@ export default function AdminCustomOrders() {
                   )}
 
                   {/* Admin Actions */}
-                  <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
+                  <div className="flex flex-wrap gap-3 pt-3 border-t border-border items-center">
 
                     {/* Status */}
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-semibold text-muted-foreground">Status:</label>
                       <select value={order.status}
                         onChange={e => update.mutate({ id: order.id, status: e.target.value })}
-                        className="border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white capitalize">
+                        disabled={update.isPending}
+                        className="border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors">
                         {STATUSES.map(s => <option key={s} value={s} className="capitalize">{s.replace('_', ' ')}</option>)}
                       </select>
                     </div>
@@ -181,12 +221,14 @@ export default function AdminCustomOrders() {
                         placeholder="Quote price ₹"
                         value={quotes[order.id] ?? order.quoted_price ?? ''}
                         onChange={e => setQuotes(prev => ({ ...prev, [order.id]: e.target.value }))}
-                        className="w-32 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white"
+                        className="w-32 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <button
                         onClick={() => quotes[order.id] && update.mutate({ id: order.id, quoted_price: Number(quotes[order.id]), status: 'quoted' })}
-                        className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors"
+                        disabled={update.isPending}
+                        className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 inline-flex items-center gap-1.5"
                       >
+                        {update.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
                         Send Quote
                       </button>
                     </div>
@@ -202,11 +244,12 @@ export default function AdminCustomOrders() {
                       placeholder="Internal notes (not shown to customer)…"
                       value={notes[order.id] ?? order.admin_notes ?? ''}
                       onChange={e => setNotes(prev => ({ ...prev, [order.id]: e.target.value }))}
-                      className="w-full border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white resize-none"
+                      className="w-full border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white resize-none transition-colors"
                     />
                     <button
                       onClick={() => update.mutate({ id: order.id, admin_notes: notes[order.id] ?? order.admin_notes ?? '' })}
-                      className="mt-1.5 text-xs font-semibold text-primary hover:underline"
+                      disabled={update.isPending}
+                      className="mt-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60"
                     >
                       Save Notes
                     </button>

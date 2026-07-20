@@ -17,7 +17,7 @@ export interface SiteSettings {
 const defaultSettings: SiteSettings = {
   announcement_text:   'Handmade with Love  |  Customized Just for You  |  Pan India Shipping',
   announcement_active: true,
-  whatsapp_number:     '',
+  whatsapp_number:     '916304424767',
   email_address:       '',
   store_address:       '',
   business_hours:      'Mon–Sat: 10am–7pm',
@@ -35,7 +35,6 @@ export function useSiteSettings() {
       const { data: rows, error } = await supabase
         .from('site_settings')
         .select('*')
-        .order('created_at', { ascending: true })
         .limit(1)
       if (error || !rows?.length) return defaultSettings
       return { ...defaultSettings, ...rows[0] } as SiteSettings

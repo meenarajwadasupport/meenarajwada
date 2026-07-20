@@ -2,7 +2,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function WhatsAppButton() {
   const { data: settings } = useSiteSettings()
-  const number = settings?.whatsapp_number ?? '919876543210'
+  const number = settings?.whatsapp_number ?? '916304424767'
   const message = encodeURIComponent('Hi! I saw your jewellery on Meena Rajwada and I\'m interested.')
   return (
     <a

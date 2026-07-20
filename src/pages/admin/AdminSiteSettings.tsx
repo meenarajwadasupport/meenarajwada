@@ -25,7 +25,7 @@ interface Settings {
 const DEFAULTS: Settings = {
   announcement_text:   '',
   announcement_active: true,
-  whatsapp_number:     '',
+  whatsapp_number:     '916304424767',
   email_address:       '',
   store_address:       '',
   business_hours:      'Mon–Sat: 10am–7pm',
@@ -56,7 +56,6 @@ export default function AdminSiteSettings() {
       const { data: rows, error } = await supabase
         .from('site_settings')
         .select('*')
-        .order('created_at', { ascending: true })
         .limit(1)
       if (error) throw new Error(error.message)
       return (rows?.[0] ?? null) as Settings | null
@@ -69,7 +68,7 @@ export default function AdminSiteSettings() {
         id: (data as any).id,
         announcement_text:   data.announcement_text   ?? '',
         announcement_active: data.announcement_active ?? true,
-        whatsapp_number:     data.whatsapp_number     ?? '',
+        whatsapp_number:     data.whatsapp_number     ?? '916304424767',
         email_address:       data.email_address       ?? '',
         store_address:       data.store_address       ?? '',
         business_hours:      data.business_hours      ?? 'Mon–Sat: 10am–7pm',

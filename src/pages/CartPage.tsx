@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingBag, AlertCircle, Info } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
-import { formatPrice, calcShipping } from '@/lib/utils'
+import { formatPrice, calcShipping, MIN_ORDER_AMOUNT } from '@/lib/utils'
 import SEOHead from '@/components/common/SEOHead'
 
 export default function CartPage() {
@@ -9,6 +9,8 @@ export default function CartPage() {
   const navigate = useNavigate()
   const shipping = calcShipping(subtotal)
   const total = subtotal + shipping
+  const belowMinimum = subtotal < MIN_ORDER_AMOUNT
+  const remainingForFreeShipping = 999 - subtotal
 
   if (items.length === 0) {
     return (
@@ -59,13 +61,34 @@ export default function CartPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span></div>
-              {shipping > 0 && <p className="text-xs text-muted-foreground">Add {formatPrice(5000 - subtotal)} more for free shipping</p>}
+              {shipping > 0 && remainingForFreeShipping > 0 && (
+                <p className="text-xs text-green-700 bg-green-50 rounded-lg px-2 py-1.5">Add {formatPrice(remainingForFreeShipping)} more for FREE shipping</p>
+              )}
               <div className="border-t border-border pt-3 flex justify-between font-bold text-base">
                 <span>Total</span>
                 <span className="text-primary">{formatPrice(total)}</span>
               </div>
             </div>
-            <button onClick={() => navigate('/checkout')} className="btn-primary w-full py-3 mt-5 text-base">Proceed to Checkout</button>
+
+            {/* Pre-order notice */}
+            <div className="flex gap-2 items-start bg-amber-50 border border-amber-200 rounded-xl p-3 mt-4">
+              <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-800 leading-relaxed">These are <strong>pre-order items</strong>. Payment is collected now and your piece is handcrafted & dispatched within 5–7 working days.</p>
+            </div>
+
+            {/* Minimum order warning */}
+            {belowMinimum && (
+              <div className="flex gap-2 items-start bg-red-50 border border-red-200 rounded-xl p-3 mt-3">
+                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-700">Minimum order amount is <strong>₹500</strong>. Add {formatPrice(MIN_ORDER_AMOUNT - subtotal)} more to proceed.</p>
+              </div>
+            )}
+
+            <button
+              onClick={() => navigate('/checkout')}
+              disabled={belowMinimum}
+              className="btn-primary w-full py-3 mt-4 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            >Proceed to Checkout</button>
             <Link to="/shop" className="block text-center text-sm text-muted-foreground hover:text-primary mt-3 transition-colors">Continue Shopping</Link>
           </div>
         </div>

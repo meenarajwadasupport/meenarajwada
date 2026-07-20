@@ -14,10 +14,11 @@ export function calcDiscount(price: number, mrp: number) {
   return Math.round(((mrp - price) / mrp) * 100)
 }
 
+export const MIN_ORDER_AMOUNT = 500  // ₹500 minimum order
+
 export function calcShipping(subtotal: number): number {
-  if (subtotal >= 5000) return 0
-  if (subtotal >= 2000) return 99
-  return 199
+  if (subtotal >= 999) return 0   // Free shipping above ₹999
+  return 99                        // ₹99 below ₹999
 }
 
 export function slugify(text: string) {

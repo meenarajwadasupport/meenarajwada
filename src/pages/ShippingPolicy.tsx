@@ -1,131 +1,114 @@
 import SEOHead from '@/components/common/SEOHead'
-import { Package, Truck, MapPin, Clock, Gift, Phone, Mail, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function ShippingPolicy() {
   return (
     <>
-      <SEOHead title="Shipping Policy" />
+      <SEOHead title="Shipping Policy – Meena Rajwada" />
 
-      {/* Hero */}
-      <div className="bg-[#7D1935] text-white py-12 px-4 text-center">
-        <p className="text-xs tracking-[4px] uppercase text-white/60 mb-2">Meena Rajwada</p>
-        <h1 className="font-serif text-3xl sm:text-4xl font-bold mb-3">Shipping Policy</h1>
-        <p className="text-white/70 text-sm">Last updated: July 2025</p>
-        <div className="flex flex-wrap justify-center gap-3 mt-6">
-          {['Free Shipping above ₹999', 'Pan India Delivery', '5–7 Day Dispatch', 'Pre-Order Model'].map(tag => (
-            <span key={tag} className="bg-white/10 border border-white/20 text-white/90 text-xs px-4 py-1.5 rounded-full">{tag}</span>
-          ))}
+      {/* Page header */}
+      <div className="border-b border-border/60 bg-background">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-8">
+          <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-primary/70 mb-3">Meena Rajwada</p>
+          <h1 className="font-serif text-4xl sm:text-5xl font-semibold text-foreground mb-4 leading-tight">Shipping Policy</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">Everything you need to know about how your order is packed, dispatched, and delivered to you across India.</p>
+          <p className="text-[11px] text-muted-foreground/60 mt-4">Last updated: July 2025</p>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-12">
 
-        {/* Pre-order model */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Zap className="w-5 h-5 text-amber-600 flex-shrink-0" />
-            <h2 className="font-serif text-xl font-semibold text-amber-900">Pre-Order Model</h2>
-          </div>
-          <p className="text-sm text-amber-800 leading-relaxed">All items on Meena Rajwada are <strong>handcrafted to order</strong>. Payment is collected first, and your piece is then carefully crafted and dispatched. No item is ever shipped without confirmed payment.</p>
+        {/* Pre-order callout */}
+        <div className="border-l-4 border-primary bg-primary/[0.04] rounded-r-xl px-6 py-5 mb-12">
+          <p className="font-serif text-lg font-semibold text-foreground mb-1">We make your piece after you order</p>
+          <p className="text-sm text-foreground/70 leading-relaxed">Every item in our collection is handcrafted to order. Once your payment is confirmed, our artisans begin work on your piece. Nothing is dispatched before payment — this ensures every order receives the attention it deserves.</p>
         </div>
 
         {/* Shipping charges */}
-        <div className="bg-white border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-              <Truck className="w-5 h-5 text-green-600" />
+        <section className="mb-12">
+          <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">Shipping Charges</h2>
+          <div className="rounded-2xl border border-border overflow-hidden">
+            <div className="grid grid-cols-[1fr_1fr] divide-x divide-border">
+              <div className="p-6 sm:p-8">
+                <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted-foreground mb-3">Orders above ₹999</p>
+                <p className="font-serif text-4xl font-semibold text-green-700 mb-2">Free</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">No shipping charges. We cover the delivery cost entirely.</p>
+              </div>
+              <div className="p-6 sm:p-8 bg-background/60">
+                <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted-foreground mb-3">Orders below ₹999</p>
+                <p className="font-serif text-4xl font-semibold text-foreground mb-2">₹99</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">A flat shipping charge is applied at checkout.</p>
+              </div>
             </div>
-            <h2 className="font-serif text-xl font-semibold">Shipping Charges</h2>
+            <div className="border-t border-border bg-muted/30 px-6 py-3">
+              <p className="text-xs text-muted-foreground">Minimum order value is ₹500. Orders below this amount cannot be placed.</p>
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
-              <p className="text-2xl font-bold text-green-700 font-serif">FREE</p>
-              <p className="text-sm text-green-800 mt-1 font-medium">Orders above ₹999</p>
-              <p className="text-xs text-green-600 mt-2">No shipping charge — enjoy free delivery across India</p>
-            </div>
-            <div className="bg-muted/40 border border-border rounded-xl p-5 text-center">
-              <p className="text-2xl font-bold text-foreground font-serif">₹99</p>
-              <p className="text-sm text-foreground/80 mt-1 font-medium">Orders below ₹999</p>
-              <p className="text-xs text-muted-foreground mt-2">Flat rate shipping charge applied at checkout</p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-4 text-center">Minimum order value is ₹500. Orders below ₹500 are not accepted.</p>
-        </div>
+        </section>
 
-        {/* Dispatch & Delivery */}
-        <div className="bg-white border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <Clock className="w-5 h-5 text-blue-500" />
-            </div>
-            <h2 className="font-serif text-xl font-semibold">Dispatch &amp; Delivery Timeline</h2>
-          </div>
-          <div className="space-y-4">
+        {/* Timeline */}
+        <section className="mb-12">
+          <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">How Long Will It Take?</h2>
+          <div className="space-y-0">
             {[
-              { icon: <Package className="w-4 h-4 text-[#7D1935]" />, label: 'Processing & Dispatch', value: '5–7 working days', note: 'Time required to handcraft and quality-check your piece after payment confirmation' },
-              { icon: <Truck className="w-4 h-4 text-[#7D1935]" />, label: 'Delivery after dispatch', value: '3–5 business days', note: 'Depending on your location across India' },
-            ].map(({ icon, label, value, note }, i) => (
-              <div key={i} className="flex gap-4 p-4 bg-muted/30 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-[#7D1935]/10 flex items-center justify-center flex-shrink-0">{icon}</div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="font-semibold text-sm mt-0.5">{value}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{note}</p>
+              { step: '01', title: 'Order confirmed', desc: 'Payment verified — your order is confirmed and crafting begins.', time: 'Day 0' },
+              { step: '02', title: 'Handcrafting', desc: 'Our artisans carefully craft and quality-check your piece.', time: '5–7 working days' },
+              { step: '03', title: 'Packed & dispatched', desc: 'Your jewellery is packed in our signature gift box and handed to the courier. You receive a tracking number via email and WhatsApp.', time: 'Day 6–8' },
+              { step: '04', title: 'Delivered to you', desc: 'Your order arrives at your door, across anywhere in India.', time: '+3–5 business days' },
+            ].map(({ step, title, desc, time }, i, arr) => (
+              <div key={step} className="flex gap-5 sm:gap-8">
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full border-2 border-primary/30 bg-primary/[0.06] flex items-center justify-center flex-shrink-0">
+                    <span className="text-[11px] font-bold text-primary">{step}</span>
+                  </div>
+                  {i < arr.length - 1 && <div className="w-px flex-1 bg-border my-1 min-h-[32px]" />}
+                </div>
+                <div className="pb-8">
+                  <div className="flex flex-wrap items-baseline gap-3 mb-1">
+                    <p className="font-semibold text-foreground text-sm">{title}</p>
+                    <span className="text-[10px] font-medium text-primary bg-primary/[0.07] px-2.5 py-0.5 rounded-full">{time}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-4 leading-relaxed">You will receive a tracking number via <strong>email and WhatsApp</strong> once your order is dispatched.</p>
-        </div>
+        </section>
 
-        {/* Delivery areas */}
-        <div className="bg-white border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-5 h-5 text-purple-600" />
+        {/* Delivery info */}
+        <section className="mb-12">
+          <h2 className="font-serif text-2xl font-semibold text-foreground mb-5">Delivery Coverage</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-border rounded-2xl p-6">
+              <p className="font-semibold text-sm mb-2">Pan India Delivery</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">We ship to all states and union territories across India. International shipping is not available at this time.</p>
             </div>
-            <h2 className="font-serif text-xl font-semibold">Delivery Areas</h2>
-          </div>
-          <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3">
-            <MapPin className="w-4 h-4 text-purple-600 flex-shrink-0" />
-            <p className="text-sm text-purple-800"><strong>Pan India</strong> — We deliver to all states and union territories across India.</p>
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">International shipping is not available at this time.</p>
-        </div>
-
-        {/* Packaging */}
-        <div className="bg-white border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0">
-              <Gift className="w-5 h-5 text-rose-500" />
+            <div className="bg-white border border-border rounded-2xl p-6">
+              <p className="font-semibold text-sm mb-2">Signature Gift Packaging</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Every order is packed in our Meena Rajwada gift box — beautiful, secure, and ready to gift.</p>
             </div>
-            <h2 className="font-serif text-xl font-semibold">Packaging</h2>
           </div>
-          <p className="text-sm text-foreground/80 leading-relaxed">All jewellery is carefully packed in our <strong>signature Meena Rajwada gift box</strong> — beautifully presented and ready for gifting or safe storage. Every parcel is double-checked before dispatch.</p>
-        </div>
+        </section>
 
-        {/* Delays */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-3">
-          <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-amber-900 text-sm">Possible Delays</p>
-            <p className="text-xs text-amber-800 mt-1 leading-relaxed">In rare cases, delays may occur during festivals, high demand periods, or courier disruptions. We will proactively notify you via WhatsApp or email if your order is delayed.</p>
-          </div>
-        </div>
+        {/* Delays note */}
+        <section className="mb-12 bg-amber-50 border border-amber-100 rounded-2xl px-6 py-5">
+          <p className="font-semibold text-amber-900 text-sm mb-1">Possible delays</p>
+          <p className="text-sm text-amber-800 leading-relaxed">During festivals, high demand periods, or unforeseen courier disruptions, delivery may take slightly longer. We will always notify you proactively via WhatsApp or email if your order is delayed.</p>
+        </section>
 
         {/* Contact */}
-        <div className="bg-[#7D1935] text-white rounded-2xl p-6 text-center">
-          <h2 className="font-serif text-xl font-semibold mb-4">Shipping Queries?</h2>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="mailto:support@meenarajwada.com" className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors rounded-xl px-5 py-3 text-sm">
-              <Mail className="w-4 h-4" /> support@meenarajwada.com
+        <section className="border-t border-border pt-10">
+          <p className="font-serif text-xl font-semibold text-foreground mb-4">Have a shipping question?</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a href="mailto:support@meenarajwada.com" className="inline-flex items-center gap-2 text-sm text-foreground/80 border border-border rounded-xl px-5 py-3 hover:border-primary hover:text-primary transition-colors">
+              support@meenarajwada.com
             </a>
-            <a href="https://wa.me/916304424767" className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors rounded-xl px-5 py-3 text-sm">
-              <Phone className="w-4 h-4" /> +91 63044 24767
+            <a href="https://wa.me/916304424767" className="inline-flex items-center gap-2 text-sm text-foreground/80 border border-border rounded-xl px-5 py-3 hover:border-primary hover:text-primary transition-colors">
+              WhatsApp: +91 63044 24767
             </a>
           </div>
-          <p className="text-white/50 text-xs mt-4">Monday – Saturday · 10 AM – 6 PM IST</p>
-        </div>
+          <p className="text-xs text-muted-foreground mt-3">Mon – Sat · 10 AM – 6 PM IST</p>
+        </section>
 
       </div>
     </>

@@ -1,123 +1,104 @@
 import SEOHead from '@/components/common/SEOHead'
-import { ShoppingBag, CreditCard, RefreshCw, Truck, Shield, Gavel, Phone, Mail, AlertCircle, Scale } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-const sections = [
+const clauses = [
   {
-    icon: <ShoppingBag className="w-5 h-5 text-blue-500" />,
-    bg: 'bg-blue-50',
-    title: '1. Acceptance',
-    content: 'By using meenarajwada.com and placing an order, you agree to these Terms & Conditions. If you do not agree, please do not use our website or services.',
+    title: 'Acceptance of Terms',
+    body: 'By accessing or using meenarajwada.com and placing an order, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use our website or services.',
   },
   {
-    icon: <ShoppingBag className="w-5 h-5 text-amber-500" />,
-    bg: 'bg-amber-50',
-    title: '2. Pre-Order & Payment',
-    content: 'All products on Meena Rajwada are made-to-order handcrafted jewellery. Full payment is collected at checkout before any item is crafted or dispatched. An order is confirmed only after successful payment verification.',
+    title: 'Made-to-Order Model',
+    body: 'All products on Meena Rajwada are handcrafted specifically after your order is placed. Full payment is collected at checkout before any item is crafted or dispatched. An order is considered confirmed only after successful payment.',
   },
   {
-    icon: <AlertCircle className="w-5 h-5 text-red-500" />,
-    bg: 'bg-red-50',
-    title: '3. Minimum Order Value',
-    content: 'The minimum order value is ₹500. Orders below this amount cannot be processed at checkout.',
+    title: 'Minimum Order Value',
+    body: 'The minimum order value is ₹500. Orders below this amount cannot be processed at checkout.',
   },
   {
-    icon: <CreditCard className="w-5 h-5 text-green-600" />,
-    bg: 'bg-green-50',
-    title: '4. Pricing & Taxes',
-    content: 'All prices are in Indian Rupees (INR) and inclusive of applicable taxes. We reserve the right to update prices without prior notice. The price shown at the time of checkout is the final price.',
+    title: 'Pricing & Taxes',
+    body: 'All prices are displayed in Indian Rupees (INR) and are inclusive of applicable taxes. We reserve the right to update pricing without prior notice. The price displayed at the time of checkout is the final price you pay.',
   },
   {
-    icon: <RefreshCw className="w-5 h-5 text-purple-600" />,
-    bg: 'bg-purple-50',
-    title: '5. Cancellations',
-    content: 'Orders may be cancelled only before dispatch. Once an item is dispatched, cancellations are not accepted. Contact us immediately after placing your order if you wish to cancel.',
+    title: 'Payments',
+    body: 'We accept UPI, credit cards, debit cards, net banking, and wallets. All payments are processed through a secure, PCI-DSS compliant payment partner. Meena Rajwada does not store any card or bank account details.',
   },
   {
-    icon: <RefreshCw className="w-5 h-5 text-rose-500" />,
-    bg: 'bg-rose-50',
-    title: '6. Returns & Refunds',
-    content: 'We do not accept returns or exchanges. In case of transit damage or a missing item, contact us within 7 days of delivery with a mandatory uncut unboxing video. Valid claims are resolved by replacement first; a refund is issued only if the replacement item is unavailable. See our Return & Refund Policy for full details.',
-    link: { href: '/return-policy', label: 'Return & Refund Policy →' },
+    title: 'Cancellations',
+    body: 'Orders may be cancelled only before dispatch. Once your order has been dispatched, cancellations are not accepted. If you need to cancel, contact us immediately after placing your order.',
   },
   {
-    icon: <Truck className="w-5 h-5 text-blue-600" />,
-    bg: 'bg-blue-50',
-    title: '7. Shipping',
-    content: 'Dispatch takes 5–7 working days after payment. Shipping is free on orders above ₹999 and ₹99 flat for orders below ₹999. See our Shipping Policy for full details.',
-    link: { href: '/shipping-policy', label: 'Shipping Policy →' },
+    title: 'Returns & Refunds',
+    body: 'We do not accept returns or exchanges. In the event of transit damage or a missing item, contact us within 7 days of delivery with a mandatory, uncut unboxing video. Valid claims are resolved by replacement first; a refund is issued only if the replacement item is no longer available.',
+    link: { to: '/return-policy', label: 'Read our full Returns & Refunds Policy' },
   },
   {
-    icon: <CreditCard className="w-5 h-5 text-green-700" />,
-    bg: 'bg-green-50',
-    title: '8. Payment Gateway',
-    content: 'Payments are processed securely via Cashfree. Meena Rajwada does not store any card or bank account details. All transactions are encrypted and PCI-DSS compliant.',
+    title: 'Shipping',
+    body: 'We ship Pan India. Dispatch takes 5–7 working days after payment confirmation. Shipping is free on orders above ₹999 and ₹99 flat for orders below ₹999.',
+    link: { to: '/shipping-policy', label: 'Read our full Shipping Policy' },
   },
   {
-    icon: <Shield className="w-5 h-5 text-purple-600" />,
-    bg: 'bg-purple-50',
-    title: '9. Intellectual Property',
-    content: 'All content on this website — including product images, designs, text, videos, and branding — is the exclusive property of Meena Rajwada. Reproduction, copying, or commercial use without written permission is strictly prohibited.',
+    title: 'Intellectual Property',
+    body: 'All content on this website — including product images, designs, written descriptions, videos, and brand assets — is the exclusive property of Meena Rajwada. Reproduction, copying, or commercial use of any content without written permission is strictly prohibited.',
   },
   {
-    icon: <AlertCircle className="w-5 h-5 text-amber-600" />,
-    bg: 'bg-amber-50',
-    title: '10. Limitation of Liability',
-    content: 'Meena Rajwada\'s liability is limited to the value of the order placed. We are not responsible for indirect, incidental, or consequential losses arising from the use of our products or website.',
+    title: 'Limitation of Liability',
+    body: "Our liability in connection with any product purchased through this website is strictly limited to the purchase price of that product. We are not liable for indirect, incidental, or consequential losses of any nature.",
   },
   {
-    icon: <Gavel className="w-5 h-5 text-gray-500" />,
-    bg: 'bg-gray-50',
-    title: '11. Governing Law',
-    content: 'These terms are governed by the laws of India. Any disputes are subject to the jurisdiction of courts in Telangana, India.',
-    icon: <Scale className="w-5 h-5 text-gray-500" />,
-    bg: 'bg-gray-50',
+    title: 'Governing Law',
+    body: 'These Terms & Conditions are governed by and construed in accordance with the laws of India. Any disputes arising from these terms or your use of our website are subject to the exclusive jurisdiction of the courts of Telangana, India.',
   },
 ]
 
 export default function Terms() {
   return (
     <>
-      <SEOHead title="Terms & Conditions" />
+      <SEOHead title="Terms & Conditions – Meena Rajwada" />
 
-      {/* Hero */}
-      <div className="bg-[#7D1935] text-white py-12 px-4 text-center">
-        <p className="text-xs tracking-[4px] uppercase text-white/60 mb-2">Meena Rajwada</p>
-        <h1 className="font-serif text-3xl sm:text-4xl font-bold mb-3">Terms &amp; Conditions</h1>
-        <p className="text-white/70 text-sm">Last updated: July 2025 · Applicable to all orders on meenarajwada.com</p>
+      {/* Page header */}
+      <div className="border-b border-border/60 bg-background">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-8">
+          <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-primary/70 mb-3">Meena Rajwada</p>
+          <h1 className="font-serif text-4xl sm:text-5xl font-semibold text-foreground mb-4 leading-tight">Terms &amp; Conditions</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">Please read these terms carefully before placing an order. By using our website, you agree to all terms listed below.</p>
+          <p className="text-[11px] text-muted-foreground/60 mt-4">Last updated: July 2025 · Applicable to all orders on meenarajwada.com</p>
+        </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-4">
+      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-12">
 
-        <p className="text-sm text-muted-foreground leading-relaxed text-center pb-4">Please read these terms carefully before placing an order. By using our website, you agree to the following terms.</p>
-
-        {sections.map(({ icon, bg, title, content, link }, i) => (
-          <div key={i} className="bg-white border border-border rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-full ${bg} flex items-center justify-center flex-shrink-0`}>{icon}</div>
-              <div>
-                <h2 className="font-serif text-lg font-semibold mb-2">{title}</h2>
-                <p className="text-sm text-foreground/80 leading-relaxed">{content}</p>
-                {link && (
-                  <a href={link.href} className="inline-block mt-2 text-xs text-primary font-medium hover:underline">{link.label}</a>
-                )}
+        <div className="divide-y divide-border/60">
+          {clauses.map(({ title, body, link }, i) => (
+            <div key={i} className="py-8 first:pt-0">
+              <div className="flex gap-5 sm:gap-8">
+                <span className="font-serif text-4xl font-semibold text-primary/20 leading-none flex-shrink-0 w-10 text-right select-none">{String(i + 1).padStart(2, '0')}</span>
+                <div>
+                  <h2 className="font-serif text-xl font-semibold text-foreground mb-3">{title}</h2>
+                  <p className="text-sm text-foreground/70 leading-relaxed">{body}</p>
+                  {link && (
+                    <Link to={link.to} className="inline-block mt-3 text-xs font-semibold text-primary hover:underline underline-offset-4">
+                      {link.label} →
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* Contact */}
-        <div className="bg-[#7D1935] text-white rounded-2xl p-6 text-center mt-8">
-          <h2 className="font-serif text-xl font-semibold mb-2">Questions about our Terms?</h2>
-          <p className="text-white/70 text-sm mb-5">We're happy to clarify anything.</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="mailto:support@meenarajwada.com" className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors rounded-xl px-5 py-3 text-sm">
-              <Mail className="w-4 h-4" /> support@meenarajwada.com
+        <section className="border-t border-border pt-10 mt-2">
+          <p className="font-serif text-xl font-semibold text-foreground mb-4">Questions about our terms?</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a href="mailto:support@meenarajwada.com" className="inline-flex items-center gap-2 text-sm text-foreground/80 border border-border rounded-xl px-5 py-3 hover:border-primary hover:text-primary transition-colors">
+              support@meenarajwada.com
             </a>
-            <a href="https://wa.me/916304424767" className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors rounded-xl px-5 py-3 text-sm">
-              <Phone className="w-4 h-4" /> +91 63044 24767
+            <a href="https://wa.me/916304424767" className="inline-flex items-center gap-2 text-sm text-foreground/80 border border-border rounded-xl px-5 py-3 hover:border-primary hover:text-primary transition-colors">
+              WhatsApp: +91 63044 24767
             </a>
           </div>
-        </div>
+          <p className="text-xs text-muted-foreground mt-3">Mon – Sat · 10 AM – 6 PM IST</p>
+        </section>
 
       </div>
     </>

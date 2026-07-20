@@ -166,7 +166,7 @@ export default function Footer() {
         <div className="py-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-[11px] text-white/40">
           <p>© {new Date().getFullYear()} Meena Rajwada. All rights reserved.</p>
           <div className="flex gap-5">
-            {[['Privacy', '/privacy-policy'], ['Terms', '/terms-conditions'], ['Returns', '/return-policy']].map(([label, href]) => (
+            {[['Terms', '/terms'], ['Returns & Refunds', '/return-policy'], ['Shipping', '/shipping-policy']].map(([label, href]) => (
               <Link key={href} to={href} className="hover:text-gold transition-colors">{label}</Link>
             ))}
           </div>

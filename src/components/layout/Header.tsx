@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   Search, ShoppingBag, Heart, User, Menu, X,
   ChevronDown, ChevronRight, Home, Store,
-  HelpCircle, Truck, RefreshCw, Shield, FileText, Phone, Mail,
+  HelpCircle, Truck, RefreshCw, FileText, Phone, Mail,
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
@@ -32,7 +32,6 @@ const supportLinks = [
   { label: 'FAQ',               href: '/faq',             icon: <HelpCircle className="w-4 h-4" /> },
   { label: 'Shipping Policy',   href: '/shipping-policy', icon: <Truck className="w-4 h-4" /> },
   { label: 'Returns & Refunds', href: '/return-policy',   icon: <RefreshCw className="w-4 h-4" /> },
-  { label: 'Privacy Policy',    href: '/privacy-policy',  icon: <Shield className="w-4 h-4" /> },
   { label: 'Terms & Conditions',href: '/terms',           icon: <FileText className="w-4 h-4" /> },
 ]
 

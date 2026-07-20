@@ -1,27 +1,17 @@
-import { useCallback } from 'react'
-import { Instagram, ChevronLeft, ChevronRight, Heart, Play } from 'lucide-react'
-import useEmblaCarousel from 'embla-carousel-react'
-import Autoplay from 'embla-carousel-autoplay'
-import { useSiteSettings } from '@/hooks/useSiteSettings'
+import { useEffect, useRef, useState } from 'react'
+import { Instagram, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-
-// Fallback static posts shown when no DB posts exist yet
-const FALLBACK_POSTS = [
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=600&q=85', caption: 'Gold Silk Thread Bangles ✨', tag: 'New Arrival' },
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1610611424854-5f5da64d4fbc?w=600&q=85', caption: 'Bridal Bangle Set 👑', tag: 'Bestseller' },
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1583391733956-62a1c35c8c4e?w=600&q=85', caption: 'Handcrafted with Love 💖', tag: 'Handmade' },
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=85', caption: 'Kundan Heritage Set 🌺', tag: 'Heritage' },
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=600&q=85', caption: 'Festive Collection 🪔', tag: 'Festive' },
-  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=600&q=85', caption: 'Custom Orders Open 💍', tag: 'Custom' },
-]
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function InstagramFeed() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [embedsLoaded, setEmbedsLoaded] = useState(false)
   const { data: settings } = useSiteSettings()
   const igUrl = settings?.instagram_url ?? 'https://www.instagram.com/meena.rajwada?igsh=aGRoMngyODhrZjlz'
 
-  // Fetch real posts from Supabase
-  const { data: dbPosts = [] } = useQuery({
+  // Fetch active reels from DB
+  const { data: posts = [], isLoading } = useQuery({
     queryKey: ['instagram-posts-public'],
     queryFn: async () => {
       const { data } = await supabase
@@ -34,26 +24,52 @@ export default function InstagramFeed() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // Use DB posts if available, else show fallback
-  const posts = (dbPosts as any[]).length > 0
-    ? (dbPosts as any[]).map((p: any) => ({
-        reel_id: p.reel_id as string,
-        thumbnail_url: (p.thumbnail_url as string) ?? '',
-        caption: (p.caption as string) ?? '',
-        tag: 'Reel',
-      }))
-    : FALLBACK_POSTS
+  const reelIds = (posts as any[]).map((p: any) => p.reel_id as string)
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: 'start', slidesToScroll: 1 },
-    [Autoplay({ delay: 2800, stopOnInteraction: true })]
-  )
+  // Load Instagram embed.js — same technique as Helmet Hub
+  useEffect(() => {
+    if (reelIds.length === 0) return
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+    const existing = document.querySelector('script[src*="instagram.com/embed.js"]')
+    if (existing) existing.remove()
+
+    const script = document.createElement('script')
+    script.src = 'https://www.instagram.com/embed.js'
+    script.async = true
+    document.body.appendChild(script)
+
+    script.onload = () => {
+      setTimeout(() => {
+        if ((window as any).instgrm) {
+          ;(window as any).instgrm.Embeds.process()
+          setEmbedsLoaded(true)
+        }
+      }, 300)
+    }
+
+    return () => {
+      if (document.body.contains(script)) document.body.removeChild(script)
+    }
+  }, [reelIds.length])
+
+  // Re-process when reels change
+  useEffect(() => {
+    if ((window as any).instgrm && reelIds.length > 0) {
+      setTimeout(() => (window as any).instgrm.Embeds.process(), 100)
+    }
+  }, [reelIds])
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const amt = window.innerWidth < 640 ? 290 : 340
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' })
+  }
+
+  if (isLoading) return null
+  if (reelIds.length === 0) return null   // hide section entirely if no reels added yet
 
   return (
-    <section className="py-12 sm:py-16 bg-background overflow-hidden">
+    <section className="py-12 sm:py-16 bg-background overflow-hidden relative">
 
       {/* ── Header ── */}
       <div className="text-center mb-8 sm:mb-10 px-4">
@@ -67,7 +83,6 @@ export default function InstagramFeed() {
           <Instagram className="w-3 h-3" />
           Follow @meena.rajwada
         </a>
-
         <p className="section-label">Our Story</p>
         <h2 className="section-title">Shop Our Latest Drops</h2>
         <div className="divider" />
@@ -76,81 +91,66 @@ export default function InstagramFeed() {
         </p>
       </div>
 
-      {/* ── Carousel ── */}
+      {/* ── Scrollable Reel Embeds ── */}
       <div className="relative">
-        <div ref={emblaRef} className="overflow-hidden">
-          <div className="flex gap-3 sm:gap-4 pl-4 sm:pl-8 lg:pl-16 pr-4">
-            {posts.map((post, i) => {
-              const href = post.reel_id
-                ? `https://www.instagram.com/reel/${post.reel_id}/`
-                : igUrl
-              return (
-                <a
-                  key={i}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex-[0_0_68vw] sm:flex-[0_0_260px] lg:flex-[0_0_240px] flex-shrink-0 rounded-2xl overflow-hidden bg-white border border-border shadow-sm hover:shadow-md transition-shadow duration-300"
-                >
-                  {/* Square image / placeholder */}
-                  <div className="relative aspect-square overflow-hidden">
-                    {post.thumbnail_url ? (
-                      <img
-                        src={post.thumbnail_url}
-                        alt={post.caption}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex flex-col items-center justify-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
-                      >
-                        <Play className="w-10 h-10 text-white fill-white" />
-                        <span className="text-white/80 text-[10px] font-bold tracking-widest uppercase">Watch Reel</span>
-                      </div>
-                    )}
-                    {/* Tag pill */}
-                    <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-primary text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border border-primary/20">
-                      {post.tag}
-                    </span>
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                      <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                  </div>
+        {/* Fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-16 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-                  {/* Caption */}
-                  <div className="flex items-center justify-between px-3 py-2.5">
-                    <p className="text-xs font-medium text-foreground/80 truncate pr-2 leading-snug">
-                      {post.caption || 'View on Instagram'}
-                    </p>
-                    <Heart className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  </div>
-                </a>
-              )
-            })}
-          </div>
+        {/* Arrows */}
+        <div className="absolute inset-0 flex items-center justify-between pointer-events-none z-20 px-2 sm:px-4">
+          <button
+            onClick={() => scroll('left')}
+            className="pointer-events-auto w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            className="pointer-events-auto w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
         </div>
 
-        {/* Prev / Next — desktop only */}
-        <button
-          onClick={scrollPrev}
-          className="hidden sm:flex absolute left-2 lg:left-6 top-[45%] -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-border shadow-md items-center justify-center text-foreground hover:bg-muted transition-colors duration-200 z-10"
-          aria-label="Previous"
+        <div
+          ref={scrollRef}
+          className="flex gap-3 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth px-6 sm:px-16 py-4"
         >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <button
-          onClick={scrollNext}
-          className="hidden sm:flex absolute right-2 lg:right-6 top-[45%] -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-border shadow-md items-center justify-center text-foreground hover:bg-muted transition-colors duration-200 z-10"
-          aria-label="Next"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          {reelIds.map((reelId, i) => (
+            <div
+              key={reelId}
+              className="ig-reel-card flex-shrink-0 w-[260px] sm:w-[300px] md:w-[320px] aspect-[9/16] overflow-hidden relative rounded-2xl border border-border/40 shadow-xl bg-black transition-transform duration-300 hover:scale-[1.02]"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              {/* Loading placeholder */}
+              {!embedsLoaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10"
+                  style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}>
+                  <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 animate-pulse">
+                    <Play className="w-7 h-7 text-white ml-1" />
+                  </div>
+                  <p className="text-white/80 text-xs font-semibold tracking-wide">Loading reel…</p>
+                </div>
+              )}
+
+              {/* Official Instagram embed */}
+              <blockquote
+                className="instagram-media"
+                data-instgrm-permalink={`https://www.instagram.com/reel/${reelId}/`}
+                data-instgrm-version="14"
+                style={{ background: 'transparent', border: 0, margin: 0, padding: 0, width: '100%', maxWidth: '100%' }}
+              >
+                <a href={`https://www.instagram.com/reel/${reelId}/`} target="_blank" rel="noopener noreferrer" className="block w-full h-full" />
+              </blockquote>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Swipe hint — mobile only */}
+      {/* Swipe hint */}
       <p className="sm:hidden text-center text-muted-foreground text-[9px] tracking-[3px] uppercase mt-3">
         ← Swipe to explore →
       </p>
@@ -168,6 +168,38 @@ export default function InstagramFeed() {
         </a>
       </div>
 
+      {/* CSS: clip bottom of embed to hide Instagram chrome (same trick as Helmet Hub) */}
+      <style>{`
+        .ig-reel-card {
+          position: relative;
+          overflow: hidden;
+          clip-path: inset(0 0 160px 0);
+        }
+        @media (min-width: 640px) {
+          .ig-reel-card {
+            clip-path: inset(0 0 200px 0);
+          }
+        }
+        .ig-reel-card iframe {
+          position: absolute !important;
+          top: -50px !important;
+          left: -1px !important;
+          width: calc(100% + 2px) !important;
+          height: calc(100% + 260px) !important;
+          border: 0 !important;
+        }
+        @media (min-width: 640px) {
+          .ig-reel-card iframe {
+            top: -70px !important;
+            height: calc(100% + 340px) !important;
+          }
+        }
+        .ig-reel-card .instagram-media {
+          min-width: 100% !important;
+          width: 100% !important;
+          background: transparent !important;
+        }
+      `}</style>
     </section>
   )
 }

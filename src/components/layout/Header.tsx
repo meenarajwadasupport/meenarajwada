@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   Search, ShoppingBag, Heart, User, Menu, X,
-  ChevronDown, ChevronRight, Home, Store, Clock,
+  ChevronDown, ChevronRight, Home, Store,
+  HelpCircle, Truck, RefreshCw, Shield, FileText, Phone, Mail,
 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
@@ -24,7 +25,15 @@ const navLinks = [
   },
   { label: 'Blog',       href: '/blog' },
   { label: 'About Us',  href: '/our-story' },
-  { label: 'Contact',   href: '/contact' },
+]
+
+const supportLinks = [
+  { label: 'Contact Us',        href: '/contact',         icon: <Phone className="w-4 h-4" /> },
+  { label: 'FAQ',               href: '/faq',             icon: <HelpCircle className="w-4 h-4" /> },
+  { label: 'Shipping Policy',   href: '/shipping-policy', icon: <Truck className="w-4 h-4" /> },
+  { label: 'Returns & Refunds', href: '/return-policy',   icon: <RefreshCw className="w-4 h-4" /> },
+  { label: 'Privacy Policy',    href: '/privacy-policy',  icon: <Shield className="w-4 h-4" /> },
+  { label: 'Terms & Conditions',href: '/terms',           icon: <FileText className="w-4 h-4" /> },
 ]
 
 export default function Header() {
@@ -40,8 +49,9 @@ export default function Header() {
   const [searchOpen, setSearchOpen]   = useState(false)
   const [mobileOpen, setMobileOpen]   = useState(false)
   const [colOpen, setColOpen]         = useState(false)   // Collections submenu in mobile drawer
+  const [supOpen, setSupOpen]         = useState(false)   // Support submenu in mobile drawer
 
-  useEffect(() => { setMobileOpen(false); setColOpen(false) }, [location.pathname])
+  useEffect(() => { setMobileOpen(false); setColOpen(false); setSupOpen(false) }, [location.pathname])
 
   useEffect(() => {
     if (!isHome) { setScrolled(true); return }
@@ -135,6 +145,38 @@ export default function Header() {
             </Link>
             <nav className="flex items-center justify-center gap-8">
               {navLinks.map(link => <NavItem key={link.label} link={link} />)}
+
+              {/* Support dropdown */}
+              <div className="relative group">
+                <button className={`relative flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 py-6 ${navCls}`}>
+                  Support
+                  <ChevronDown className="w-3 h-3 opacity-50 group-hover:rotate-180 transition-transform duration-300" />
+                  <span className={`absolute bottom-4 left-0 right-3 h-[1.5px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${scrolled ? 'bg-primary' : 'bg-white'}`} />
+                </button>
+                <div className="absolute top-full right-0 pt-1 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50">
+                  <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-60 overflow-hidden">
+                    <p className="px-5 pt-1 pb-2 text-[9px] font-bold tracking-[0.28em] uppercase text-muted-foreground border-b border-border/40 mb-1">Help & Policies</p>
+                    {supportLinks.map(item => (
+                      <NavLink key={item.href} to={item.href}
+                        className="group/item flex items-center gap-3 px-5 py-2.5 text-sm text-foreground/70 hover:text-primary hover:bg-primary/[0.04] transition-colors font-medium">
+                        <span className="text-muted-foreground group-hover/item:text-primary transition-colors">{item.icon}</span>
+                        {item.label}
+                      </NavLink>
+                    ))}
+                    {/* Contact info at bottom */}
+                    <div className="border-t border-border/40 mt-1.5 px-5 pt-3 pb-2 space-y-1.5">
+                      <a href="mailto:support@meenarajwada.com" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors">
+                        <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                        support@meenarajwada.com
+                      </a>
+                      <a href="https://wa.me/916304424767" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors">
+                        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                        +91 63044 24767
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </nav>
             <div className="flex items-center gap-1 flex-shrink-0">
               <button onClick={() => setSearchOpen(true)} aria-label="Search" className={`p-2.5 rounded-full transition-all duration-300 ${iconCls}`}>
@@ -248,10 +290,36 @@ export default function Header() {
             About Us
           </NavLink>
 
-          <NavLink to="/contact" onClick={() => setMobileOpen(false)}
-            className={({ isActive }) => `flex items-center justify-between px-6 py-[15px] text-[13.5px] font-medium tracking-wide border-b border-border/40 transition-colors ${isActive ? 'text-primary bg-primary/[0.04] border-l-2 border-l-primary' : 'text-foreground/80 active:bg-background'}`}>
-            Contact
-          </NavLink>
+          {/* Support submenu */}
+          <button
+            onClick={() => setSupOpen(!supOpen)}
+            className={`w-full flex items-center justify-between px-6 py-[15px] text-[13.5px] font-medium tracking-wide border-b border-border/40 transition-colors ${supOpen ? 'text-primary' : 'text-foreground/80'}`}
+          >
+            Support
+            <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${supOpen ? 'rotate-90 text-primary' : 'text-foreground/40'}`} />
+          </button>
+          <div className={`overflow-hidden transition-all duration-300 ${supOpen ? 'max-h-[500px]' : 'max-h-0'}`}>
+            <div className="bg-background/80 border-b border-border/40">
+              {supportLinks.map(item => (
+                <NavLink key={item.href} to={item.href} onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 pl-9 pr-6 py-3 text-[13px] text-foreground/65 hover:text-primary active:bg-primary/[0.04] transition-colors border-b border-border/25 last:border-0">
+                  <span className="text-primary/50">{item.icon}</span>
+                  {item.label}
+                </NavLink>
+              ))}
+              {/* Contact info */}
+              <div className="px-9 py-3 space-y-2 border-t border-border/40 bg-primary/[0.02]">
+                <a href="mailto:support@meenarajwada.com" className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Mail className="w-3.5 h-3.5 text-primary/60 flex-shrink-0" />
+                  support@meenarajwada.com
+                </a>
+                <a href="https://wa.me/916304424767" className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Phone className="w-3.5 h-3.5 text-primary/60 flex-shrink-0" />
+                  +91 63044 24767
+                </a>
+              </div>
+            </div>
+          </div>
 
           {/* Divider */}
           <div className="h-2.5 bg-background" />

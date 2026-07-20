@@ -11,6 +11,59 @@ const BASE_URL = CF_ENV === 'production'
   ? 'https://api.cashfree.com/pg/orders'
   : 'https://sandbox.cashfree.com/pg/orders'
 
+// ── Google Sheets logger ─────────────────────────────────────
+async function logOrderToSheets(order: any) {
+  const key = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+  const sheetId = process.env.GOOGLE_SHEET_ID
+  if (!key || !sheetId) return // skip if not configured
+
+  const sa = JSON.parse(key)
+  const addr = order.shipping_address ?? {}
+  const items = (order.order_items ?? []).map((i: any) => `${i.product_name} x${i.quantity}`).join(', ')
+  const now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+
+  // JWT token for Google Sheets API
+  const jwtHeader = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url')
+  const now2 = Math.floor(Date.now() / 1000)
+  const claims = { iss: sa.client_email, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: 'https://oauth2.googleapis.com/token', exp: now2 + 3600, iat: now2 }
+  const jwtClaims = Buffer.from(JSON.stringify(claims)).toString('base64url')
+  const unsigned = `${jwtHeader}.${jwtClaims}`
+
+  const { createSign } = await import('crypto')
+  const sign = createSign('RSA-SHA256')
+  sign.update(unsigned)
+  const signature = sign.sign(sa.private_key, 'base64url')
+  const jwt = `${unsigned}.${signature}`
+
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  })
+  const { access_token } = await tokenRes.json()
+
+  const row = [
+    now,
+    order.order_number ?? '',
+    order.customer_name ?? '',
+    order.customer_email ?? '',
+    order.customer_phone ?? '',
+    `${addr.address ?? ''}, ${addr.city ?? ''}, ${addr.state ?? ''} - ${addr.pincode ?? ''}`,
+    items,
+    `₹${order.subtotal ?? 0}`,
+    `₹${order.shipping_amount ?? 0}`,
+    `₹${order.total_amount ?? 0}`,
+    order.payment_status ?? '',
+    order.status ?? '',
+  ]
+
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:append?valueInputOption=USER_ENTERED`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: [row] }),
+  })
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const orderId = req.query.order_id as string
   if (!orderId) return res.status(400).json({ error: 'Missing order_id' })
@@ -51,7 +104,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { error: emailError } = await resend.emails.send({
           from: 'Meena Rajwada <noreply@meenarajwada.com>',
           to: order.customer_email,
-          replyTo: 'muakhhir@gmail.com',
+          bcc: 'support@meenarajwada.com',
+          replyTo: 'support@meenarajwada.com',
           subject: `Order Confirmed ✨ ${order.order_number ?? ''}`,
           html: `
 <!DOCTYPE html>
@@ -125,6 +179,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           console.error('Resend order email error:', JSON.stringify(emailError))
         } else {
           await supabase.from('orders').update({ email_sent: true }).eq('id', orderId)
+        }
+
+        // Log to Google Sheets (fire-and-forget, don't block response)
+        try {
+          await logOrderToSheets(order)
+        } catch (sheetErr) {
+          console.error('Google Sheets log error:', sheetErr)
         }
       }
     }

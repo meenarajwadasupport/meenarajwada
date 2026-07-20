@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Instagram, Facebook, Youtube, Heart } from 'lucide-react'
+import { Instagram, Facebook, Youtube, Heart, Mail, MessageCircle } from 'lucide-react'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -104,6 +104,20 @@ export default function Footer() {
                   <Youtube className="w-4 h-4" />
                 </a>
               )}
+            </div>
+
+            {/* Contact info */}
+            <div className="mt-5 space-y-2">
+              <a href="mailto:support@meenarajwada.com"
+                className="flex items-center gap-2.5 text-[12px] text-white/50 hover:text-gold transition-colors duration-200 group">
+                <Mail className="w-3.5 h-3.5 text-gold/60 group-hover:text-gold flex-shrink-0" />
+                support@meenarajwada.com
+              </a>
+              <a href="https://wa.me/916304424767" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-[12px] text-white/50 hover:text-gold transition-colors duration-200 group">
+                <MessageCircle className="w-3.5 h-3.5 text-gold/60 group-hover:text-gold flex-shrink-0" />
+                +91 63044 24767
+              </a>
             </div>
           </div>
 

@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
 
-// Uses service role key — can create buckets (anon key cannot)
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -13,7 +12,15 @@ const BUCKETS = [
 ]
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Security: method check
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  // Security: require secret token — prevents anyone on the internet from running this
+  const authHeader = req.headers['authorization'] ?? ''
+  const token = authHeader.toString().replace('Bearer ', '').trim()
+  if (!process.env.SETUP_SECRET || token !== process.env.SETUP_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
 
   const results: Record<string, string> = {}
 
@@ -22,7 +29,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       public: bucket.public,
       fileSizeLimit: 10485760, // 10 MB
     })
-
     if (!error || error.message?.toLowerCase().includes('already exist')) {
       results[bucket.name] = 'ready'
     } else {

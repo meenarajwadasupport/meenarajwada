@@ -8,6 +8,12 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
+  // Security: only callable from admin panel with secret token
+  const token = (req.headers['authorization'] ?? '').toString().replace('Bearer ', '').trim()
+  if (!process.env.SETUP_SECRET || token !== process.env.SETUP_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
   const { order_id, tracking_id, courier } = req.body
   if (!order_id) return res.status(400).json({ error: 'Missing order_id' })
 

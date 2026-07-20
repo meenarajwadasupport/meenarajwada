@@ -46,8 +46,8 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2 space-y-6">
             {[
-              { icon: Mail, label: 'Email', value: 'hello@meenarajwada.com' },
-              { icon: Phone, label: 'WhatsApp', value: '+91 98765 43210' },
+              { icon: Mail, label: 'Email', value: 'support@meenarajwada.com' },
+              { icon: Phone, label: 'WhatsApp', value: '+91 63044 24767' },
               { icon: MapPin, label: 'Location', value: 'Delivered pan-India' },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex gap-4">

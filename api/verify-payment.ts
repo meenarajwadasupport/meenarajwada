@@ -65,8 +65,15 @@ async function logOrderToSheets(order: any) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).end()
+
   const orderId = req.query.order_id as string
   if (!orderId) return res.status(400).json({ error: 'Missing order_id' })
+
+  // Validate UUID format — reject obviously malformed IDs
+  if (!/^[0-9a-f-]{32,36}$/.test(orderId)) {
+    return res.status(400).json({ error: 'Invalid order_id format' })
+  }
 
   try {
     // Fetch full order details

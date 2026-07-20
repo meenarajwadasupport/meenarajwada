@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Instagram, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 
-const BLANK = { reel_id: '', caption: '', display_order: '1', is_active: true }
+const BLANK = { reel_id: '', caption: '', thumbnail_url: '', display_order: '1', is_active: true }
 
 export default function AdminInstagram() {
   const qc = useQueryClient()
@@ -23,7 +23,7 @@ export default function AdminInstagram() {
   function openForm(post?: any) {
     if (post) {
       setEditing(post)
-      setForm({ reel_id: post.reel_id, caption: post.caption ?? '', display_order: post.display_order, is_active: post.is_active })
+      setForm({ reel_id: post.reel_id, caption: post.caption ?? '', thumbnail_url: post.thumbnail_url ?? '', display_order: post.display_order, is_active: post.is_active })
     } else {
       setEditing(null)
       setForm({ ...BLANK, display_order: String((posts.length ?? 0) + 1) })
@@ -35,7 +35,7 @@ export default function AdminInstagram() {
     mutationFn: async () => {
       const id = form.reel_id.trim().replace(/.*\/reel\//i, '').replace(/\//g, '')
       if (!id) throw new Error('Reel ID is required')
-      const payload = { reel_id: id, caption: form.caption.trim(), display_order: Number(form.display_order), is_active: form.is_active }
+      const payload = { reel_id: id, caption: form.caption.trim(), thumbnail_url: (form as any).thumbnail_url?.trim() || null, display_order: Number(form.display_order), is_active: form.is_active }
       if (editing) await supabase.from('instagram_posts').update(payload).eq('id', editing.id)
       else await supabase.from('instagram_posts').insert(payload)
     },
@@ -180,6 +180,21 @@ export default function AdminInstagram() {
                 placeholder="Caption (optional)"
                 className={inputCls}
               />
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Thumbnail Image URL <span className="text-muted-foreground font-normal normal-case">(optional)</span></label>
+                <input
+                  value={(form as any).thumbnail_url ?? ''}
+                  onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))}
+                  placeholder="https://... (paste any image URL to show as preview)"
+                  className={inputCls}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Tip: Screenshot the reel thumbnail, upload it to <strong>Supabase → Storage → media</strong>, copy the public URL and paste here. Or paste any image URL.
+                </p>
+                {(form as any).thumbnail_url && (
+                  <img src={(form as any).thumbnail_url} alt="preview" className="mt-2 w-20 h-20 object-cover rounded-lg border border-border" onError={e => (e.currentTarget.style.display = 'none')} />
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3 items-center">
                 <input
                   value={form.display_order}

@@ -1,51 +1,48 @@
 import { useCallback } from 'react'
-import { Instagram, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
+import { Instagram, ChevronLeft, ChevronRight, Heart, Play } from 'lucide-react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
 
-const POSTS = [
-  {
-    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=600&q=85',
-    caption: 'Gold Silk Thread Bangles ✨',
-    likes: '2.4k',
-    tag: 'New Arrival',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1610611424854-5f5da64d4fbc?w=600&q=85',
-    caption: 'Bridal Bangle Set 👑',
-    likes: '3.8k',
-    tag: 'Bestseller',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1583391733956-62a1c35c8c4e?w=600&q=85',
-    caption: 'Handcrafted with Love 💖',
-    likes: '1.9k',
-    tag: 'Handmade',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=85',
-    caption: 'Kundan Heritage Set 🌺',
-    likes: '4.1k',
-    tag: 'Heritage',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=600&q=85',
-    caption: 'Festive Collection 🪔',
-    likes: '2.7k',
-    tag: 'Festive',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=600&q=85',
-    caption: 'Custom Orders Open 💍',
-    likes: '3.3k',
-    tag: 'Custom',
-  },
+// Fallback static posts shown when no DB posts exist yet
+const FALLBACK_POSTS = [
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=600&q=85', caption: 'Gold Silk Thread Bangles ✨', tag: 'New Arrival' },
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1610611424854-5f5da64d4fbc?w=600&q=85', caption: 'Bridal Bangle Set 👑', tag: 'Bestseller' },
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1583391733956-62a1c35c8c4e?w=600&q=85', caption: 'Handcrafted with Love 💖', tag: 'Handmade' },
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=85', caption: 'Kundan Heritage Set 🌺', tag: 'Heritage' },
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=600&q=85', caption: 'Festive Collection 🪔', tag: 'Festive' },
+  { reel_id: '', thumbnail_url: 'https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=600&q=85', caption: 'Custom Orders Open 💍', tag: 'Custom' },
 ]
 
 export default function InstagramFeed() {
   const { data: settings } = useSiteSettings()
   const igUrl = settings?.instagram_url ?? 'https://www.instagram.com/meena.rajwada?igsh=aGRoMngyODhrZjlz'
+
+  // Fetch real posts from Supabase
+  const { data: dbPosts = [] } = useQuery({
+    queryKey: ['instagram-posts-public'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('instagram_posts')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order')
+      return data ?? []
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
+  // Use DB posts if available, else show fallback
+  const posts = (dbPosts as any[]).length > 0
+    ? (dbPosts as any[]).map((p: any) => ({
+        reel_id: p.reel_id as string,
+        thumbnail_url: (p.thumbnail_url as string) ?? '',
+        caption: (p.caption as string) ?? '',
+        tag: 'Reel',
+      }))
+    : FALLBACK_POSTS
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'start', slidesToScroll: 1 },
@@ -83,43 +80,56 @@ export default function InstagramFeed() {
       <div className="relative">
         <div ref={emblaRef} className="overflow-hidden">
           <div className="flex gap-3 sm:gap-4 pl-4 sm:pl-8 lg:pl-16 pr-4">
-            {POSTS.map((post, i) => (
-              <a
-                key={i}
-                href={igUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex-[0_0_68vw] sm:flex-[0_0_260px] lg:flex-[0_0_240px] flex-shrink-0 rounded-2xl overflow-hidden bg-white border border-border shadow-sm hover:shadow-md transition-shadow duration-300"
-              >
-                {/* Image — square crop */}
-                <div className="relative aspect-square overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.caption}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {/* Tag pill */}
-                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-primary text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border border-primary/20">
-                    {post.tag}
-                  </span>
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                    <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {posts.map((post, i) => {
+              const href = post.reel_id
+                ? `https://www.instagram.com/reel/${post.reel_id}/`
+                : igUrl
+              return (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex-[0_0_68vw] sm:flex-[0_0_260px] lg:flex-[0_0_240px] flex-shrink-0 rounded-2xl overflow-hidden bg-white border border-border shadow-sm hover:shadow-md transition-shadow duration-300"
+                >
+                  {/* Square image / placeholder */}
+                  <div className="relative aspect-square overflow-hidden">
+                    {post.thumbnail_url ? (
+                      <img
+                        src={post.thumbnail_url}
+                        alt={post.caption}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex flex-col items-center justify-center gap-2"
+                        style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}
+                      >
+                        <Play className="w-10 h-10 text-white fill-white" />
+                        <span className="text-white/80 text-[10px] font-bold tracking-widest uppercase">Watch Reel</span>
+                      </div>
+                    )}
+                    {/* Tag pill */}
+                    <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-primary text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border border-primary/20">
+                      {post.tag}
+                    </span>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                      <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Caption + likes */}
-                <div className="flex items-center justify-between px-3 py-2.5">
-                  <p className="text-xs font-medium text-foreground/80 truncate pr-2 leading-snug">
-                    {post.caption}
-                  </p>
-                  <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
-                    <Heart className="w-3 h-3" />
-                    <span className="text-[10px] font-medium">{post.likes}</span>
+                  {/* Caption */}
+                  <div className="flex items-center justify-between px-3 py-2.5">
+                    <p className="text-xs font-medium text-foreground/80 truncate pr-2 leading-snug">
+                      {post.caption || 'View on Instagram'}
+                    </p>
+                    <Heart className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                   </div>
-                </div>
-              </a>
-            ))}
+                </a>
+              )
+            })}
           </div>
         </div>
 

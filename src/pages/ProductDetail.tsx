@@ -210,7 +210,7 @@ export default function ProductDetail() {
             {/* Trust strip */}
             <div className="grid grid-cols-3 gap-2 mt-6">
               {[
-                ['Free Shipping', 'On orders ₹5000+'],
+                ['Free Shipping', 'On orders ₹999+'],
                 ['Handcrafted', 'Made to order'],
                 ['Secure Pay', 'Cashfree protected'],
               ].map(([label, sub]) => (
@@ -236,11 +236,11 @@ export default function ProductDetail() {
             <div className="mt-6 bg-gradient-to-br from-[#FAF7F5] to-white border border-border/60 rounded-2xl p-5 text-[13px] space-y-2.5">
               <p className="flex items-start gap-2.5 text-emerald-700 font-semibold">
                 <span className="flex-shrink-0 w-4 mt-px">✓</span>
-                Free shipping on orders above ₹5000
+                Free shipping on orders above ₹999
               </p>
               <p className="flex items-start gap-2.5 text-muted-foreground">
                 <span className="flex-shrink-0 w-4 mt-px text-primary/60">✓</span>
-                Handcrafted &amp; dispatched within 3–5 working days
+                Handcrafted &amp; dispatched within 5–7 working days
               </p>
               <p className="flex items-start gap-2.5 text-muted-foreground">
                 <span className="flex-shrink-0 w-4 mt-px text-primary/60">✓</span>

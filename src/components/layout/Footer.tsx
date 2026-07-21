@@ -1,30 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Instagram, Facebook, Youtube, Heart, Mail, MessageCircle } from 'lucide-react'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
 
 export default function Footer() {
   const { data: settings } = useSiteSettings()
-  const [email, setEmail] = useState('')
-  const [subscribing, setSubscribing] = useState(false)
-
-  async function handleSubscribe(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setSubscribing(true)
-    try {
-      const { error } = await supabase.from('newsletter_subs').upsert({ email: email.toLowerCase() }, { onConflict: 'email' })
-      if (error) throw error
-      toast.success('Subscribed! Welcome to Meena Rajwada 💖')
-      setEmail('')
-    } catch {
-      toast.error('Could not subscribe. Please try again.')
-    } finally {
-      setSubscribing(false)
-    }
-  }
 
   return (
     <footer className="relative bg-[hsl(345,80%,12%)] text-white/75 pb-20 lg:pb-0 overflow-hidden">
@@ -36,39 +15,6 @@ export default function Footer() {
       <div className="pointer-events-none absolute -bottom-40 -left-24 w-80 h-80 rounded-full bg-white/[0.03] blur-2xl" />
 
       <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-
-        {/* ── Newsletter band ── */}
-        <div className="py-10 sm:py-12 border-b border-white/10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="max-w-md">
-              <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-gold mb-2">Join the Family</p>
-              <h3 className="font-serif text-2xl sm:text-[28px] font-bold text-white leading-snug">
-                Stories, new arrivals &amp; exclusive offers
-              </h3>
-              <p className="text-xs sm:text-sm text-white/55 mt-2 leading-relaxed">
-                Be the first to see fresh handcrafted pieces and crafting stories from our studio.
-              </p>
-            </div>
-            <form onSubmit={handleSubscribe} className="w-full lg:w-auto lg:min-w-[420px]">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:bg-white/[0.07] sm:border sm:border-white/15 sm:rounded-full sm:p-1.5 sm:focus-within:border-gold/60 transition-colors">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="flex-1 min-w-0 bg-white/[0.07] sm:bg-transparent border border-white/15 sm:border-0 rounded-full px-5 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-gold/60"
-                />
-                <button
-                  type="submit"
-                  disabled={subscribing}
-                  className="bg-gold hover:bg-gold-light disabled:opacity-60 text-white px-7 py-3 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-all duration-300 whitespace-nowrap flex-shrink-0 hover:shadow-lg hover:shadow-gold/20 active:scale-[0.98]"
-                >
-                  {subscribing ? 'Joining…' : 'Subscribe'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
 
         {/* ── Link columns ── */}
         <div className="py-10 sm:py-14 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 sm:gap-10">

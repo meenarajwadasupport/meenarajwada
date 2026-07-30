@@ -44,16 +44,16 @@ export default function HeroSlider() {
               {/* Background — video if available, else image */}
               {slide.video_url ? (
                 <video
+                  key={slide.video_url}
                   autoPlay
                   muted
                   loop
                   playsInline
-                  poster={slide.image_url}
+                  {...(slide.image_url ? { poster: slide.image_url } : {})}
                   className="absolute inset-0 w-full h-full object-cover object-center"
                 >
-                  <source src={slide.video_url} type="video/mp4" />
-                  {/* Fallback image if video fails */}
-                  <img src={slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+                  {/* No hardcoded type — browser detects mp4/webm/gif automatically */}
+                  <source src={slide.video_url} />
                 </video>
               ) : (
                 <img

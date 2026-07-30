@@ -44,8 +44,14 @@ export default function HeroSlider() {
       const vid = videoRefs.current[slide.id]
       if (!vid) return
       vid.muted = true
+      vid.defaultMuted = true
       if (idx === selectedIndex) {
-        vid.play().catch(() => {})
+        // Small delay to let opacity transition start first
+        const t = setTimeout(() => {
+          vid.muted = true
+          vid.play().catch(() => {})
+        }, 50)
+        return () => clearTimeout(t)
       } else {
         vid.pause()
       }
@@ -80,21 +86,35 @@ export default function HeroSlider() {
               />
             ) : mp4 ? (
               <video
-                ref={el => { videoRefs.current[slide.id] = el }}
-                src={slide.video_url}
+                ref={el => {
+                  videoRefs.current[slide.id] = el
+                  if (el) {
+                    el.muted = true
+                    el.defaultMuted = true
+                  }
+                }}
                 autoPlay
                 muted
                 loop
                 playsInline
                 preload="auto"
+                crossOrigin="anonymous"
                 {...(slide.image_url ? { poster: slide.image_url } : {})}
+                onLoadedMetadata={e => {
+                  const v = e.target as HTMLVideoElement
+                  v.muted = true
+                  if (idx === selectedIndex) v.play().catch(() => {})
+                }}
                 onCanPlay={e => {
                   const v = e.target as HTMLVideoElement
                   v.muted = true
                   if (idx === selectedIndex) v.play().catch(() => {})
                 }}
                 className="w-full h-full object-cover object-center"
-              />
+              >
+                <source src={slide.video_url} type="video/mp4" />
+                <source src={slide.video_url} type="video/webm" />
+              </video>
             ) : (
               <img
                 src={slide.image_url}

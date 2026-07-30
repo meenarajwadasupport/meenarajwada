@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import ImageUpload from '@/components/admin/ImageUpload'
+import VideoUpload from '@/components/admin/VideoUpload'
 
 const BLANK = { title: '', subtitle: '', image_url: '', video_url: '', cta_text: 'Shop Now', cta_url: '/shop', display_order: '1', is_active: true }
 
@@ -239,12 +240,13 @@ export default function AdminHeroSlider() {
                   placeholder="e.g. Handcrafted with love" className={inputCls} />
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Background Video URL (optional)</label>
-                <input value={form.video_url} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))}
-                  placeholder="https://...mp4 — loops behind the image" className={inputCls} />
-                <p className="text-[10px] text-muted-foreground mt-1">Image shows on mobile / while video loads.</p>
-              </div>
+              <VideoUpload
+                value={form.video_url}
+                onChange={url => setForm(f => ({ ...f, video_url: url }))}
+                bucket="media"
+                folder="hero-videos"
+                label="Background Video (optional) — loops silently behind the slide"
+              />
 
               <div className="grid grid-cols-2 gap-2">
                 <div>

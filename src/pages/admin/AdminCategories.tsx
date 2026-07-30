@@ -28,16 +28,36 @@ export default function AdminCategories() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const p = { name: form.name, slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'), image_url: form.image_url, display_order: Number(form.display_order), is_active: form.is_active }
-      if (editing) await supabase.from('categories').update(p).eq('id', editing.id)
-      else await supabase.from('categories').insert(p)
+      if (!form.name.trim()) throw new Error('Category name is required')
+      const p = { name: form.name.trim(), slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'), image_url: form.image_url || null, display_order: Number(form.display_order), is_active: form.is_active }
+      if (editing) {
+        const { error } = await supabase.from('categories').update(p).eq('id', editing.id)
+        if (error) throw new Error(error.message)
+      } else {
+        const { error } = await supabase.from('categories').insert(p)
+        if (error) throw new Error(error.message)
+      }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-categories'] }); toast.success('Saved'); setShowForm(false) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-categories'] })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+      toast.success('Saved')
+      setShowForm(false)
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Could not save category'),
   })
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('categories').delete().eq('id', id) },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-categories'] }); toast.success('Deleted') },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('categories').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-categories'] })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+      toast.success('Deleted')
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete category'),
   })
 
   const reorder = useMutation({

@@ -20,7 +20,17 @@ export default function CustomizePage() {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   async function onSubmit(data: FormData) {
-    const { error } = await supabase.from('custom_order_requests').insert(data)
+    // Map form field names to the correct database column names
+    const payload = {
+      customer_name: data.name,
+      customer_email: data.email,
+      customer_phone: data.phone,
+      design_type: data.piece_type,
+      description: data.description,
+      budget: data.budget,
+      occasion: data.occasion ?? null,
+    }
+    const { error } = await supabase.from('custom_order_requests').insert(payload)
     if (error) { toast.error('Could not submit. Please try again.'); return }
     toast.success('Request received! We\'ll contact you within 24 hours.')
     reset()

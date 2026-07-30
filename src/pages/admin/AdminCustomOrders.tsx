@@ -34,16 +34,25 @@ export default function AdminCustomOrders() {
   })
 
   const update = useMutation({
-    mutationFn: async ({ id, status, quoted_price, admin_notes }: { id: string; status?: string; quoted_price?: number; admin_notes?: string }) => {
-      const payload: any = { updated_at: new Date().toISOString() }
-      if (status)       payload.status       = status
-      if (quoted_price) payload.quoted_price = quoted_price
-      if (admin_notes !== undefined) payload.admin_notes = admin_notes
-      const { error } = await supabase.from('custom_order_requests').update(payload).eq('id', id)
-      if (error) throw error
+    mutationFn: async ({ id, status, quoted_price, admin_notes, send_email }: {
+      id: string; status?: string; quoted_price?: number; admin_notes?: string; send_email?: boolean
+    }) => {
+      const res = await fetch('/api/admin-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_order', id, status, quoted_price, admin_notes, send_email }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: 'Request failed' }))
+        throw new Error(error ?? 'Could not update')
+      }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-custom-orders'] }); toast.success('Updated') },
-    onError: () => toast.error('Could not update'),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['admin-custom-orders'] })
+      if (vars.send_email) toast.success('Quote sent via email ✓')
+      else toast.success('Updated')
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Could not update'),
   })
 
   const counts = STATUSES.reduce((acc, s) => ({
@@ -224,12 +233,18 @@ export default function AdminCustomOrders() {
                         className="w-32 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <button
-                        onClick={() => quotes[order.id] && update.mutate({ id: order.id, quoted_price: Number(quotes[order.id]), status: 'quoted' })}
-                        disabled={update.isPending}
+                        onClick={() => quotes[order.id] && update.mutate({
+                          id: order.id,
+                          quoted_price: Number(quotes[order.id]),
+                          status: 'quoted',
+                          send_email: true,
+                        })}
+                        disabled={update.isPending || !quotes[order.id]}
+                        title="Saves the quote and sends a professional email to the customer"
                         className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 inline-flex items-center gap-1.5"
                       >
                         {update.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
-                        Send Quote
+                        Send Quote via Email
                       </button>
                     </div>
                   </div>

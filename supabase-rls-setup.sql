@@ -144,9 +144,71 @@ create policy "Authenticated can update media"
   with check (bucket_id = 'media' and auth.role() = 'authenticated');
 
 
+-- ── 6. ADD MISSING COLUMNS ───────────────────────────────────
+-- These columns are required for admin features to work.
+-- Each block is safe to run multiple times (checks before adding).
+
+-- contact_messages: is_read column
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_name = 'contact_messages' and column_name = 'is_read'
+  ) then
+    alter table contact_messages add column is_read boolean not null default false;
+  end if;
+end $$;
+
+-- custom_order_requests: admin management columns
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_name = 'custom_order_requests' and column_name = 'status'
+  ) then
+    alter table custom_order_requests add column status text not null default 'new';
+  end if;
+end $$;
+
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_name = 'custom_order_requests' and column_name = 'quoted_price'
+  ) then
+    alter table custom_order_requests add column quoted_price numeric(10,2);
+  end if;
+end $$;
+
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_name = 'custom_order_requests' and column_name = 'admin_notes'
+  ) then
+    alter table custom_order_requests add column admin_notes text;
+  end if;
+end $$;
+
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_name = 'custom_order_requests' and column_name = 'updated_at'
+  ) then
+    alter table custom_order_requests add column updated_at timestamptz;
+  end if;
+end $$;
+
+-- Ensure customer_name / customer_email / customer_phone / design_type columns exist
+-- (run only if your table still uses old names: name, email, phone, piece_type)
+-- Uncomment the lines below ONLY if your columns are named differently:
+-- alter table custom_order_requests rename column name to customer_name;
+-- alter table custom_order_requests rename column email to customer_email;
+-- alter table custom_order_requests rename column phone to customer_phone;
+-- alter table custom_order_requests rename column piece_type to design_type;
+
+
 -- ── DONE ─────────────────────────────────────────────────────
 -- After running this script:
 -- 1. Go to Storage → Buckets → make sure "media" exists and is Public
 -- 2. Test uploading a category image in admin → it should now appear on homepage
 -- 3. Test submitting a contact form → message should appear in Admin > Messages
 -- 4. Test a custom order → should appear in Admin > Custom Orders
+-- 5. Test "Send Quote via Email" in custom orders → customer gets a quote email
+-- 6. Test status change in custom orders → should work without "Could not update"

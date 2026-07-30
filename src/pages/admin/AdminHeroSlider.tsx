@@ -44,10 +44,10 @@ export default function AdminHeroSlider() {
   const save = useMutation({
     mutationFn: async () => {
       if (!form.title.trim()) throw new Error('Title is required')
-      if (!form.image_url) throw new Error('Please upload a slide image first')
+      if (!form.image_url && !form.video_url) throw new Error('Please upload at least an image or a video')
       const payload = {
         title: form.title.trim(), subtitle: form.subtitle.trim(),
-        image_url: form.image_url, video_url: form.video_url.trim() || null,
+        image_url: form.image_url || null, video_url: form.video_url || null,
         cta_text: form.cta_text.trim(), cta_url: form.cta_url.trim(),
         display_order: Number(form.display_order) || 1,
         is_active: form.is_active,
@@ -224,7 +224,7 @@ export default function AdminHeroSlider() {
                 value={form.image_url}
                 onChange={url => setForm(f => ({ ...f, image_url: url }))}
                 bucket="media" folder="hero-slides"
-                label="Slide Image *"
+                label={`Slide Image ${form.video_url ? '(optional — used as poster while video loads)' : '*'}`}
                 aspect="wide"
               />
 

@@ -20,7 +20,16 @@ export default function AdminMessages() {
 
   const markRead = useMutation({
     mutationFn: async ({ id, is_read }: { id: string; is_read: boolean }) => {
-      await supabase.from('contact_messages').update({ is_read: !is_read }).eq('id', id)
+      // Use server-side API — bypasses RLS and works even if is_read column was just added
+      const res = await fetch('/api/admin-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_read', id, is_read: !is_read }),
+      })
+      if (!res.ok) {
+        // Non-fatal: silently ignore mark-read failures so the UI keeps working
+        console.warn('mark_read failed (likely missing is_read column — run supabase-rls-setup.sql)')
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-messages'] })
@@ -94,8 +103,9 @@ export default function AdminMessages() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {m.created_at && (
-                      <span className="hidden sm:block text-[11px] text-muted-foreground">
-                        {new Date(m.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      <span className="hidden sm:block text-[11px] text-muted-foreground text-right leading-tight">
+                        <span className="block">{new Date(m.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                        <span className="block text-[10px]">{new Date(m.created_at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
                       </span>
                     )}
                     <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />

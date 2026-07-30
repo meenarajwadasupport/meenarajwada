@@ -47,7 +47,7 @@ export default function AdminHeroSlider() {
       if (!form.image_url && !form.video_url) throw new Error('Please upload at least an image or a video')
       const payload = {
         title: form.title.trim(), subtitle: form.subtitle.trim(),
-        image_url: form.image_url || null, video_url: form.video_url || null,
+        image_url: form.image_url || '', video_url: form.video_url || null,
         cta_text: form.cta_text.trim(), cta_url: form.cta_url.trim(),
         display_order: Number(form.display_order) || 1,
         is_active: form.is_active,

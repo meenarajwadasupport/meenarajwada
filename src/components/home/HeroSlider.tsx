@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
@@ -21,6 +21,7 @@ export default function HeroSlider() {
     [Autoplay({ delay: 5500, stopOnInteraction: false })]
   )
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return
@@ -33,6 +34,19 @@ export default function HeroSlider() {
     return () => { emblaApi.off('select', onSelect) }
   }, [emblaApi, onSelect])
 
+  // Force-play the video on the active slide whenever the index changes
+  useEffect(() => {
+    videoRefs.current.forEach((vid, i) => {
+      if (!vid) return
+      if (i === selectedIndex) {
+        vid.currentTime = 0
+        vid.play().catch(() => {/* autoplay blocked — muted should prevent this */})
+      } else {
+        vid.pause()
+      }
+    })
+  }, [selectedIndex])
+
   if (!slides.length) return null
 
   return (
@@ -44,17 +58,15 @@ export default function HeroSlider() {
               {/* Background — video if available, else image */}
               {slide.video_url ? (
                 <video
-                  key={slide.video_url}
+                  ref={el => { videoRefs.current[idx] = el }}
+                  src={slide.video_url}
                   autoPlay
                   muted
                   loop
                   playsInline
                   {...(slide.image_url ? { poster: slide.image_url } : {})}
                   className="absolute inset-0 w-full h-full object-cover object-center"
-                >
-                  {/* No hardcoded type — browser detects mp4/webm/gif automatically */}
-                  <source src={slide.video_url} />
-                </video>
+                />
               ) : (
                 <img
                   src={slide.image_url}

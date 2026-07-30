@@ -34,18 +34,22 @@ export default function HeroSlider() {
     return () => { emblaApi.off('select', onSelect) }
   }, [emblaApi, onSelect])
 
-  // Force-play the video on the active slide whenever the index changes
+  // Force-play the active slide video.
+  // Depends on both selectedIndex AND slides so it re-runs when slides first load.
   useEffect(() => {
-    videoRefs.current.forEach((vid, i) => {
-      if (!vid) return
-      if (i === selectedIndex) {
-        vid.currentTime = 0
-        vid.play().catch(() => {/* autoplay blocked — muted should prevent this */})
-      } else {
-        vid.pause()
-      }
-    })
-  }, [selectedIndex])
+    const timer = setTimeout(() => {
+      videoRefs.current.forEach((vid, i) => {
+        if (!vid) return
+        vid.muted = true // set programmatically — some browsers ignore the HTML attribute
+        if (i === selectedIndex) {
+          vid.play().catch(() => {})
+        } else {
+          vid.pause()
+        }
+      })
+    }, 50) // wait one tick for the DOM + Embla to settle after slides load
+    return () => clearTimeout(timer)
+  }, [selectedIndex, slides])
 
   if (!slides.length) return null
 
@@ -73,7 +77,14 @@ export default function HeroSlider() {
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     {...(slide.image_url ? { poster: slide.image_url } : {})}
+                    onLoadedData={e => {
+                      // Second trigger: play as soon as data is available
+                      const v = e.target as HTMLVideoElement
+                      v.muted = true
+                      if (idx === selectedIndex) v.play().catch(() => {})
+                    }}
                     className="absolute inset-0 w-full h-full object-cover object-center"
                   />
                 )

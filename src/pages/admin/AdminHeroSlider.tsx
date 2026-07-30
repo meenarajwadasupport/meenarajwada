@@ -166,11 +166,14 @@ export default function AdminHeroSlider() {
                 </button>
               </div>
 
-              {/* Image */}
-              {s.image_url
-                ? <img src={s.image_url} alt="" className="w-28 sm:w-36 h-24 object-cover flex-shrink-0" />
-                : <div className="w-28 sm:w-36 h-24 bg-muted flex items-center justify-center text-muted-foreground text-xs flex-shrink-0">No image</div>
-              }
+              {/* Thumbnail — video preview takes priority over image */}
+              {s.video_url ? (
+                <video src={s.video_url} muted playsInline className="w-28 sm:w-36 h-24 object-cover flex-shrink-0 bg-black" />
+              ) : s.image_url ? (
+                <img src={s.image_url} alt="" className="w-28 sm:w-36 h-24 object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-28 sm:w-36 h-24 bg-muted flex items-center justify-center text-muted-foreground text-xs flex-shrink-0">No image</div>
+              )}
 
               {/* Info */}
               <div className="flex-1 min-w-0 p-3">

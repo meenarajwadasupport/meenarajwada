@@ -75,7 +75,22 @@ export default function VideoUpload({
       const path = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const publicUrl = await uploadVideo(bucket, path, file)
       onChange(publicUrl)
-      toast.success('Video uploaded ✓')
+
+      // Verify the URL is actually publicly accessible
+      try {
+        const check = await fetch(publicUrl, { method: 'HEAD' })
+        if (!check.ok) {
+          toast.warning(
+            '⚠️ Video saved but not visible — your Supabase storage bucket is private. ' +
+            'Fix: Supabase Dashboard → Storage → Buckets → "media" → click ··· → Edit → turn ON Public → Save.',
+            { duration: 20000 }
+          )
+        } else {
+          toast.success('Video uploaded and publicly accessible ✓')
+        }
+      } catch {
+        toast.success('Video uploaded ✓')
+      }
     } catch (e: any) {
       console.error('VideoUpload error:', e)
       const firstLine = (e.message ?? 'Upload failed').split('\n')[0]
@@ -104,14 +119,19 @@ export default function VideoUpload({
 
       {value ? (
         <div className="relative group rounded-xl overflow-hidden border border-border bg-black">
-          <video
-            src={value}
-            muted
-            loop
-            autoPlay
-            playsInline
-            className="w-full aspect-video object-cover"
-          />
+          {/\.gif(\?|$)/i.test(value) ? (
+            // GIF preview — must use <img>, not <video>
+            <img src={value} alt="GIF preview" className="w-full aspect-video object-cover" />
+          ) : (
+            <video
+              src={value}
+              muted
+              loop
+              autoPlay
+              playsInline
+              className="w-full aspect-video object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
             <button
               type="button"

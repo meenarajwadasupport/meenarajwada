@@ -55,18 +55,28 @@ export default function HeroSlider() {
         <div className="flex">
           {slides.map((slide, idx) => (
             <div key={slide.id} className="relative flex-[0_0_100%] h-[92vh] sm:h-screen min-h-[540px] max-h-[920px]">
-              {/* Background — video if available, else image */}
+              {/* Background — gif/video/image */}
               {slide.video_url ? (
-                <video
-                  ref={el => { videoRefs.current[idx] = el }}
-                  src={slide.video_url}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  {...(slide.image_url ? { poster: slide.image_url } : {})}
-                  className="absolute inset-0 w-full h-full object-cover object-center"
-                />
+                /\.gif(\?|$)/i.test(slide.video_url) ? (
+                  // GIF files must use <img> — browsers ignore GIFs inside <video>
+                  <img
+                    src={slide.video_url}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  // MP4 / WebM
+                  <video
+                    ref={el => { videoRefs.current[idx] = el }}
+                    src={slide.video_url}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    {...(slide.image_url ? { poster: slide.image_url } : {})}
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                  />
+                )
               ) : (
                 <img
                   src={slide.image_url}

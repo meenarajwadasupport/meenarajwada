@@ -90,7 +90,22 @@ export default function ImageUpload({
       const path = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
       const publicUrl = await uploadToStorage(bucket, path, compressed)
       onChange(publicUrl)
-      toast.success('Image uploaded ✓')
+
+      // Verify the URL is publicly accessible
+      try {
+        const check = await fetch(publicUrl, { method: 'HEAD' })
+        if (!check.ok) {
+          toast.warning(
+            '⚠️ Image saved but not visible — Supabase bucket is private. ' +
+            'Fix: Supabase → Storage → Buckets → "media" → ··· → Edit → turn ON Public → Save.',
+            { duration: 20000 }
+          )
+        } else {
+          toast.success('Image uploaded ✓')
+        }
+      } catch {
+        toast.success('Image uploaded ✓')
+      }
     } catch (e: any) {
       console.error('ImageUpload error:', e)
       // Multi-line errors: show first line in toast, rest in console

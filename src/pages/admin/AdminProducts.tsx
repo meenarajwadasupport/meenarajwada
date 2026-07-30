@@ -41,43 +41,17 @@ async function uploadProductImage(file: File): Promise<string> {
   return supabase.storage.from('products').getPublicUrl(data!.path).data.publicUrl
 }
 
-// ── Sync in_hero_slider flag to hero_slides table ───────────────────────────
+// ── Sync in_hero_slider flag via server API (uses service role, bypasses RLS) ─
 async function syncHeroSlide(product: any, enable: boolean) {
-  const slug = product.slug || product.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  if (!slug) return
-
-  const ctaUrl = `/product/${slug}`
-
-  if (enable) {
-    const imageUrl = product.images?.[0] ?? ''
-    const { data: existing } = await supabase
-      .from('hero_slides').select('id').eq('cta_url', ctaUrl).maybeSingle()
-
-    if (existing) {
-      // Update existing slide (image may have changed)
-      const { error } = await supabase.from('hero_slides').update({
-        title: product.name,
-        subtitle: product.material ?? '',
-        image_url: imageUrl,
-        is_active: true,
-      }).eq('id', existing.id)
-      if (error) throw new Error(`Hero slide update failed: ${error.message}`)
-    } else {
-      const { error } = await supabase.from('hero_slides').insert({
-        title: product.name,
-        subtitle: product.material ?? '',
-        image_url: imageUrl,
-        cta_text: 'Shop Now',
-        cta_url: ctaUrl,
-        display_order: 99,
-        is_active: true,
-      })
-      if (error) throw new Error(`Hero slide create failed: ${error.message}\n\nMake sure you ran supabase-setup.sql in Supabase SQL Editor.`)
-    }
-  } else {
-    // Remove slide for this product
-    const { error } = await supabase.from('hero_slides').delete().eq('cta_url', ctaUrl)
-    if (error) throw new Error(`Hero slide remove failed: ${error.message}`)
+  const res = await fetch('/api/admin-action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'sync_hero_slide', product, enable }),
+  })
+  if (!res.ok) {
+    let msg = 'Hero slide sync failed'
+    try { const j = await res.json(); msg = j.error ?? msg } catch {}
+    throw new Error(msg)
   }
 }
 

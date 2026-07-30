@@ -141,5 +141,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true })
   }
 
+  // ── Action: delete custom order ─────────────────────────────
+  if (action === 'delete_order') {
+    const { id } = req.body
+    if (!id) return res.status(400).json({ error: 'Missing order id' })
+
+    const { error: dbErr } = await supabase
+      .from('custom_order_requests')
+      .delete()
+      .eq('id', id)
+
+    if (dbErr) {
+      console.error('DB delete error:', dbErr)
+      return res.status(500).json({ error: dbErr.message })
+    }
+
+    return res.status(200).json({ success: true })
+  }
+
+  // ── Action: sync hero slide from product ─────────────────────
+  if (action === 'sync_hero_slide') {
+    const { product, enable } = req.body
+    if (!product) return res.status(400).json({ error: 'Missing product' })
+
+    const slug = product.slug || (product.name ?? '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    const ctaUrl = `/product/${slug}`
+
+    if (enable) {
+      const imageUrl = product.images?.[0] ?? ''
+      const { data: existing } = await supabase
+        .from('hero_slides').select('id').eq('cta_url', ctaUrl).maybeSingle()
+
+      if (existing) {
+        const { error } = await supabase.from('hero_slides').update({
+          title: product.name, subtitle: product.material ?? '',
+          image_url: imageUrl, is_active: true,
+        }).eq('id', existing.id)
+        if (error) return res.status(500).json({ error: error.message })
+      } else {
+        const { error } = await supabase.from('hero_slides').insert({
+          title: product.name, subtitle: product.material ?? '',
+          image_url: imageUrl, cta_text: 'Shop Now', cta_url: ctaUrl,
+          display_order: 99, is_active: true,
+        })
+        if (error) return res.status(500).json({ error: error.message })
+      }
+    } else {
+      const { error } = await supabase.from('hero_slides').delete().eq('cta_url', ctaUrl)
+      if (error) return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json({ success: true })
+  }
+
   return res.status(400).json({ error: 'Unknown action' })
 }

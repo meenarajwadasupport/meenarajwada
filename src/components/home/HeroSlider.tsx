@@ -40,22 +40,23 @@ export default function HeroSlider() {
 
   // Play the active slide's video, pause all others
   useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = []
     slides.forEach((slide, idx) => {
       const vid = videoRefs.current[slide.id]
       if (!vid) return
       vid.muted = true
-      vid.defaultMuted = true
       if (idx === selectedIndex) {
-        // Small delay to let opacity transition start first
         const t = setTimeout(() => {
+          if (!vid) return
           vid.muted = true
-          vid.play().catch(() => {})
-        }, 50)
-        return () => clearTimeout(t)
+          vid.play().catch(err => console.warn('[HeroSlider] play() blocked:', err))
+        }, 80)
+        timers.push(t)
       } else {
         vid.pause()
       }
     })
+    return () => timers.forEach(t => clearTimeout(t))
   }, [selectedIndex, slides])
 
   if (!slides.length) return null
@@ -88,33 +89,26 @@ export default function HeroSlider() {
               <video
                 ref={el => {
                   videoRefs.current[slide.id] = el
-                  if (el) {
-                    el.muted = true
-                    el.defaultMuted = true
-                  }
+                  if (el) el.muted = true
                 }}
+                src={slide.video_url}
                 autoPlay
                 muted
                 loop
                 playsInline
                 preload="auto"
-                crossOrigin="anonymous"
                 {...(slide.image_url ? { poster: slide.image_url } : {})}
-                onLoadedMetadata={e => {
-                  const v = e.target as HTMLVideoElement
-                  v.muted = true
-                  if (idx === selectedIndex) v.play().catch(() => {})
-                }}
                 onCanPlay={e => {
                   const v = e.target as HTMLVideoElement
                   v.muted = true
                   if (idx === selectedIndex) v.play().catch(() => {})
                 }}
+                onError={e => {
+                  const v = e.target as HTMLVideoElement
+                  console.error('[HeroSlider] video error:', v.error?.code, v.error?.message, v.src)
+                }}
                 className="w-full h-full object-cover object-center"
-              >
-                <source src={slide.video_url} type="video/mp4" />
-                <source src={slide.video_url} type="video/webm" />
-              </video>
+              />
             ) : (
               <img
                 src={slide.image_url}

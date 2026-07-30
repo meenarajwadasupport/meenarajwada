@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { ChevronDown, ChevronUp, Phone, Mail, IndianRupee, MessageSquare, Loader2, Sparkles, MessageCircle } from 'lucide-react'
+import { ChevronDown, ChevronUp, Phone, Mail, IndianRupee, MessageSquare, Loader2, Sparkles, MessageCircle, Trash2 } from 'lucide-react'
 
 const STATUSES = ['new', 'reviewing', 'quoted', 'confirmed', 'in_progress', 'completed', 'cancelled']
 
@@ -43,8 +43,10 @@ export default function AdminCustomOrders() {
         body: JSON.stringify({ action: 'update_order', id, status, quoted_price, admin_notes, send_email }),
       })
       if (!res.ok) {
-        const { error } = await res.json().catch(() => ({ error: 'Request failed' }))
-        throw new Error(error ?? 'Could not update')
+        let errMsg = 'Could not update'
+        try { const j = await res.json(); errMsg = j.error ?? errMsg } catch {}
+        if (res.status === 500) errMsg += ' — Check Vercel env vars: SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY'
+        throw new Error(errMsg)
       }
     },
     onSuccess: (_, vars) => {
@@ -53,6 +55,26 @@ export default function AdminCustomOrders() {
       else toast.success('Updated')
     },
     onError: (e: any) => toast.error(e.message ?? 'Could not update'),
+  })
+
+  const deleteOrder = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch('/api/admin-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_order', id }),
+      })
+      if (!res.ok) {
+        let errMsg = 'Could not delete'
+        try { const j = await res.json(); errMsg = j.error ?? errMsg } catch {}
+        throw new Error(errMsg)
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-custom-orders'] })
+      toast.success('Order deleted')
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const counts = STATUSES.reduce((acc, s) => ({
@@ -261,13 +283,26 @@ export default function AdminCustomOrders() {
                       onChange={e => setNotes(prev => ({ ...prev, [order.id]: e.target.value }))}
                       className="w-full border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white resize-none transition-colors"
                     />
-                    <button
-                      onClick={() => update.mutate({ id: order.id, admin_notes: notes[order.id] ?? order.admin_notes ?? '' })}
-                      disabled={update.isPending}
-                      className="mt-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60"
-                    >
-                      Save Notes
-                    </button>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <button
+                        onClick={() => update.mutate({ id: order.id, admin_notes: notes[order.id] ?? order.admin_notes ?? '' })}
+                        disabled={update.isPending}
+                        className="text-xs font-semibold text-primary hover:underline disabled:opacity-60"
+                      >
+                        Save Notes
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Delete this order from ${order.customer_name}? This cannot be undone.`)) {
+                            deleteOrder.mutate(order.id)
+                          }
+                        }}
+                        disabled={deleteOrder.isPending}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700 disabled:opacity-60 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete Order
+                      </button>
+                    </div>
                   </div>
 
                 </div>

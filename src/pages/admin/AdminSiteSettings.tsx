@@ -321,18 +321,6 @@ export default function AdminSiteSettings() {
               Upload your own jewellery or craft photos — GIFs are also supported.
             </p>
 
-            {/* SQL hint banner if columns may not exist */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 space-y-1">
-              <p className="font-semibold">⚠️ First-time setup: run this SQL in Supabase → SQL Editor</p>
-              <pre className="bg-amber-100 rounded p-2 overflow-x-auto text-[10px] font-mono whitespace-pre-wrap select-all">
-{`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_1 TEXT;
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_2 TEXT;
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_3 TEXT;
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_4 TEXT;`}
-              </pre>
-              <p>You only need to run this once. After that, images will save and show on the homepage.</p>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               {([1, 2, 3, 4] as const).map(n => (
                 <div key={n}>

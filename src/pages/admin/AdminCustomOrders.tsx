@@ -82,9 +82,10 @@ export default function AdminCustomOrders() {
   }), {} as Record<string, number>)
 
   function whatsappLink(order: any) {
-    const phone = String(order.customer_phone ?? '').replace(/[^0-9]/g, '')
+    const phone = String(order.phone ?? order.customer_phone ?? '').replace(/[^0-9]/g, '')
     const withCountry = phone.length === 10 ? `91${phone}` : phone
-    const text = encodeURIComponent(`Hello ${order.customer_name}, this is Meena Rajwada regarding your custom jewellery request. `)
+    const customerName = order.name ?? order.customer_name ?? 'there'
+    const text = encodeURIComponent(`Hello ${customerName}, this is Meena Rajwada regarding your custom jewellery request. `)
     return `https://wa.me/${withCountry}?text=${text}`
   }
 
@@ -141,10 +142,10 @@ export default function AdminCustomOrders() {
                 {/* Avatar + name */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-serif font-bold flex-shrink-0">
-                    {(order.customer_name ?? '?').charAt(0).toUpperCase()}
+                    {(order.name ?? order.customer_name ?? '?').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm">{order.customer_name}</p>
+                    <p className="font-semibold text-sm">{order.name ?? order.customer_name ?? '—'}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                     </p>
@@ -166,8 +167,8 @@ export default function AdminCustomOrders() {
                   </span>
                 )}
 
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${STATUS_COLOR[order.status]}`}>
-                  {order.status.replace('_', ' ')}
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${STATUS_COLOR[order.status ?? 'new'] ?? 'bg-blue-100 text-blue-700'}`}>
+                  {(order.status ?? 'new').replace('_', ' ')}
                 </span>
 
                 {expanded === order.id ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
@@ -181,13 +182,28 @@ export default function AdminCustomOrders() {
                     {/* Customer Details */}
                     <div className="bg-white rounded-xl border border-border p-4 space-y-2 text-sm">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Customer</p>
-                      <a href={`mailto:${order.customer_email}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                        <Mail className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_email}
-                      </a>
-                      <a href={`tel:${order.customer_phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                        <Phone className="w-3.5 h-3.5 text-muted-foreground" />{order.customer_phone}
-                      </a>
-                      {order.customer_phone && (
+                      {/* Support both old (email) and new (customer_email) column names */}
+                      {(order.email || order.customer_email) ? (
+                        <a href={`mailto:${order.email ?? order.customer_email}`} className="flex items-center gap-2 hover:text-primary transition-colors break-all">
+                          <Mail className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                          {order.email ?? order.customer_email}
+                        </a>
+                      ) : (
+                        <p className="flex items-center gap-2 text-muted-foreground/60 text-xs italic">
+                          <Mail className="w-3.5 h-3.5 flex-shrink-0" /> No email on record
+                        </p>
+                      )}
+                      {(order.phone || order.customer_phone) ? (
+                        <a href={`tel:${order.phone ?? order.customer_phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                          <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                          {order.phone ?? order.customer_phone}
+                        </a>
+                      ) : (
+                        <p className="flex items-center gap-2 text-muted-foreground/60 text-xs italic">
+                          <Phone className="w-3.5 h-3.5 flex-shrink-0" /> No phone on record
+                        </p>
+                      )}
+                      {(order.phone || order.customer_phone) && (
                         <a
                           href={whatsappLink(order)}
                           target="_blank" rel="noopener noreferrer"
@@ -202,7 +218,7 @@ export default function AdminCustomOrders() {
                     {/* Request Details */}
                     <div className="bg-white rounded-xl border border-border p-4 space-y-1.5 text-sm">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Request Details</p>
-                      {order.design_type   && <p><span className="text-muted-foreground text-xs">Type:</span> {order.design_type}</p>}
+                      {(order.piece_type || order.design_type) && <p><span className="text-muted-foreground text-xs">Type:</span> {order.piece_type ?? order.design_type}</p>}
                       {order.occasion      && <p><span className="text-muted-foreground text-xs">Occasion:</span> {order.occasion}</p>}
                       {order.color_prefs   && <p><span className="text-muted-foreground text-xs">Colors:</span> {order.color_prefs}</p>}
                       {order.size_prefs    && <p><span className="text-muted-foreground text-xs">Size:</span> {order.size_prefs}</p>}
@@ -236,7 +252,7 @@ export default function AdminCustomOrders() {
                     {/* Status */}
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-semibold text-muted-foreground">Status:</label>
-                      <select value={order.status}
+                      <select value={order.status ?? 'new'}
                         onChange={e => update.mutate({ id: order.id, status: e.target.value })}
                         disabled={update.isPending}
                         className="border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors">
@@ -250,7 +266,7 @@ export default function AdminCustomOrders() {
                       <input
                         type="number"
                         placeholder="Quote price ₹"
-                        value={quotes[order.id] ?? order.quoted_price ?? ''}
+                        value={quotes[order.id] ?? (order.quoted_price ? String(order.quoted_price) : '')}
                         onChange={e => setQuotes(prev => ({ ...prev, [order.id]: e.target.value }))}
                         className="w-32 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />

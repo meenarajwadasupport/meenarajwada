@@ -20,12 +20,11 @@ export default function CustomizePage() {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   async function onSubmit(data: FormData) {
-    // Map form field names to the correct database column names
     const payload = {
-      customer_name: data.name,
-      customer_email: data.email,
-      customer_phone: data.phone,
-      design_type: data.piece_type,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      piece_type: data.piece_type,
       description: data.description,
       budget: data.budget,
       occasion: data.occasion ?? null,

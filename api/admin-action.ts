@@ -81,15 +81,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { id, status, quoted_price, admin_notes, send_email } = req.body
     if (!id) return res.status(400).json({ error: 'Missing order id' })
 
-    const payload: any = { updated_at: new Date().toISOString() }
-    if (status !== undefined)       payload.status       = status
-    if (quoted_price !== undefined) payload.quoted_price = Number(quoted_price)
-    if (admin_notes !== undefined)  payload.admin_notes  = admin_notes
+    // Only include fields that the DB schema is guaranteed to have.
+    // status exists in the original schema (DEFAULT 'new').
+    // quoted_price / admin_notes may not exist — we try them and fall back gracefully.
+    const corePayload: any = {}
+    if (status !== undefined) corePayload.status = status
 
-    const { error: dbErr } = await supabase
+    // Try with all optional admin fields first
+    const fullPayload = { ...corePayload }
+    if (quoted_price !== undefined) fullPayload.quoted_price = Number(quoted_price)
+    if (admin_notes  !== undefined) fullPayload.admin_notes  = admin_notes
+
+    let { error: dbErr } = await supabase
       .from('custom_order_requests')
-      .update(payload)
+      .update(Object.keys(fullPayload).length ? fullPayload : { status: status ?? 'new' })
       .eq('id', id)
+
+    // If optional columns don't exist yet, retry with only core fields
+    if (dbErr && (dbErr.message?.includes('column') || dbErr.code === '42703')) {
+      console.warn('Optional columns missing, retrying with core fields only:', dbErr.message)
+      if (Object.keys(corePayload).length) {
+        const retry = await supabase
+          .from('custom_order_requests')
+          .update(corePayload)
+          .eq('id', id)
+        dbErr = retry.error
+      } else {
+        dbErr = null
+      }
+    }
 
     if (dbErr) {
       console.error('DB update error:', dbErr)
@@ -98,25 +118,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Send quote email if requested
     if (send_email && quoted_price) {
+      // Fetch order to get customer contact — support both old and new column names
       const { data: order } = await supabase
         .from('custom_order_requests')
         .select('*')
         .eq('id', id)
         .single()
 
-      if (order?.customer_email) {
+      // Support old column names (email, name, phone) AND new (customer_email etc.)
+      const customerEmail = order?.email ?? order?.customer_email
+      const customerName  = order?.name  ?? order?.customer_name ?? 'Valued Customer'
+
+      // Build an order object with normalised keys for the email template
+      const normOrder = {
+        ...(order ?? {}),
+        customer_name:  customerName,
+        customer_email: customerEmail,
+        design_type:    order?.piece_type ?? order?.design_type ?? '',
+        description:    order?.description ?? '',
+        occasion:       order?.occasion ?? '',
+      }
+
+      if (customerEmail) {
         try {
           await resend.emails.send({
             from: 'Meena Rajwada <noreply@meenarajwada.com>',
-            to: order.customer_email,
+            to: customerEmail,
             replyTo: 'support@meenarajwada.com',
             subject: `Your Custom Jewellery Quote from Meena Rajwada ✨`,
-            html: quoteEmailHtml(order, Number(quoted_price)),
+            html: quoteEmailHtml(normOrder, Number(quoted_price)),
           })
         } catch (emailErr: any) {
           console.error('Email error (non-fatal):', emailErr.message)
-          // Don't fail the whole request if email fails — DB was updated
+          // Don't fail the whole request if only email fails — DB was already updated
         }
+      } else {
+        console.warn('No customer email found for order', id, '— email not sent')
       }
     }
 

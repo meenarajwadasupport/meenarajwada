@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, Mail, LogOut, Menu, X, Sparkles,
-  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft,
+  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -17,6 +17,7 @@ const NAV = [
   { to: '/admin/custom-orders', label: 'Custom Orders', icon: Sparkles,        badge: 'custom' },
   { to: '/admin/categories',    label: 'Categories',    icon: Tag },
   { to: '/admin/hero-slider',   label: 'Hero Slider',   icon: Image },
+  { to: '/admin/collections',   label: 'Collections',   icon: LayoutGrid },
   { to: '/admin/testimonials',  label: 'Testimonials',  icon: Star },
   { to: '/admin/promos',        label: 'Promos',        icon: Megaphone },
   { to: '/admin/instagram',     label: 'Instagram',     icon: Instagram },

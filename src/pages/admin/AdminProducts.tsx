@@ -64,12 +64,42 @@ const BLANK: Record<string, any> = {
 }
 
 const FLAGS = [
-  { key: 'is_active',      label: 'Active' },
-  { key: 'is_featured',    label: 'Featured' },
-  { key: 'is_new_arrival', label: 'New Arrival' },
-  { key: 'is_bestseller',  label: 'Bestseller' },
-  { key: 'is_customizable',label: 'Customizable' },
-  { key: 'in_hero_slider', label: 'Add to Hero Slider' },
+  {
+    key: 'is_active',
+    label: 'Active (Visible on site)',
+    hint: 'Product appears in the shop. Uncheck to hide without deleting.',
+    color: 'green',
+  },
+  {
+    key: 'is_featured',
+    label: 'Featured → "Best Sellers" section',
+    hint: 'Shows in the "Handcrafted for You / Best Sellers" 4-card row on the homepage.',
+    color: 'blue',
+  },
+  {
+    key: 'is_bestseller',
+    label: 'Bestseller → "Our Pick" section',
+    hint: 'Shows in the "Our Pick / Best Seller" 8-card grid on the homepage.',
+    color: 'amber',
+  },
+  {
+    key: 'is_new_arrival',
+    label: 'New Arrival (shows NEW badge)',
+    hint: 'Adds a green "NEW" badge on the product card everywhere it appears.',
+    color: 'purple',
+  },
+  {
+    key: 'is_customizable',
+    label: 'Customizable (custom order)',
+    hint: 'Shows "Request Custom" button on the product page.',
+    color: 'teal',
+  },
+  {
+    key: 'in_hero_slider',
+    label: 'Add to Hero Slider (top banner)',
+    hint: 'Adds this product as a slide in the big banner at the very top of the homepage.',
+    color: 'rose',
+  },
 ]
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -255,11 +285,11 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {p.is_active     && <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">Active</span>}
-                        {p.is_bestseller && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">Best</span>}
-                        {p.is_featured   && <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">Feat</span>}
-                        {p.is_new_arrival && <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">New</span>}
-                        {p.in_hero_slider && <span className="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full font-bold">Hero</span>}
+                        {p.is_active      && <span title="Visible on site"        className="text-[9px] bg-green-100  text-green-700  px-1.5 py-0.5 rounded-full font-bold">Active</span>}
+                        {p.is_featured    && <span title="Best Sellers section"   className="text-[9px] bg-blue-100   text-blue-700   px-1.5 py-0.5 rounded-full font-bold">Best Sellers</span>}
+                        {p.is_bestseller  && <span title="Our Pick section"       className="text-[9px] bg-amber-100  text-amber-700  px-1.5 py-0.5 rounded-full font-bold">Our Pick</span>}
+                        {p.is_new_arrival && <span title="New Arrival badge"      className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">New</span>}
+                        {p.in_hero_slider && <span title="Hero Slider banner"     className="text-[9px] bg-rose-100   text-rose-700   px-1.5 py-0.5 rounded-full font-bold">Hero</span>}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -386,22 +416,40 @@ export default function AdminProducts() {
 
               {/* Flags */}
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Product Tags</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
-                  {FLAGS.map(({ key, label }) => (
-                    <label key={key} className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                      <input type="checkbox" checked={!!form[key]}
-                        onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
-                        className="accent-primary w-4 h-4 flex-shrink-0" />
-                      <span className={key === 'in_hero_slider' ? 'text-rose-700 font-semibold' : ''}>{label}</span>
-                    </label>
-                  ))}
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">Homepage &amp; Display Options</label>
+                <div className="space-y-2">
+                  {FLAGS.map(({ key, label, hint, color }) => {
+                    const checked = !!form[key]
+                    const borderColor = checked
+                      ? color === 'rose'   ? 'border-rose-300 bg-rose-50'
+                      : color === 'blue'   ? 'border-blue-300 bg-blue-50'
+                      : color === 'amber'  ? 'border-amber-300 bg-amber-50'
+                      : color === 'green'  ? 'border-green-300 bg-green-50'
+                      : color === 'purple' ? 'border-purple-300 bg-purple-50'
+                      : color === 'teal'   ? 'border-teal-300 bg-teal-50'
+                      : 'border-border bg-background'
+                      : 'border-border bg-white hover:border-muted-foreground/30'
+                    return (
+                      <label key={key} className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 cursor-pointer select-none transition-colors ${borderColor}`}>
+                        <input type="checkbox" checked={checked}
+                          onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
+                          className="accent-primary w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className={`text-sm font-semibold leading-tight ${
+                            color === 'rose'   ? 'text-rose-700'
+                            : color === 'blue'   ? 'text-blue-700'
+                            : color === 'amber'  ? 'text-amber-700'
+                            : color === 'green'  ? 'text-green-700'
+                            : color === 'purple' ? 'text-purple-700'
+                            : color === 'teal'   ? 'text-teal-700'
+                            : 'text-foreground'
+                          }`}>{label}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>
+                        </div>
+                      </label>
+                    )
+                  })}
                 </div>
-                {form.in_hero_slider && (
-                  <p className="text-[10px] text-rose-600 mt-2 bg-rose-50 rounded-lg px-3 py-2">
-                    ✦ This product will automatically appear as a slide in the homepage hero section using its first image.
-                  </p>
-                )}
               </div>
 
               {/* Save */}

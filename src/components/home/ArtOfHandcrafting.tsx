@@ -1,6 +1,44 @@
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
+
+function useCraftImages() {
+  return useQuery({
+    queryKey: ['site-settings'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data: rows } = await supabase.from('site_settings').select('craft_image_1,craft_image_2,craft_image_3,craft_image_4').limit(1)
+      return rows?.[0] ?? {}
+    },
+  })
+}
+
+function CraftMedia({ src, alt, className }: { src?: string; alt: string; className: string }) {
+  if (!src) {
+    return (
+      <div className={`${className} bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center`}>
+        <span className="text-2xl opacity-40">💎</span>
+      </div>
+    )
+  }
+  const isGif = /\.gif(\?|$)/i.test(src)
+  const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(src)
+  if (isVideo) {
+    return (
+      <video
+        src={src}
+        autoPlay muted loop playsInline
+        className={`${className} object-cover`}
+      />
+    )
+  }
+  return <img src={src} alt={alt} loading="lazy" className={`${className} object-cover`} />
+}
 
 export default function ArtOfHandcrafting() {
+  const { data: imgs = {} } = useCraftImages()
+  const imgClass = 'w-full h-full'
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,18 +58,18 @@ export default function ArtOfHandcrafting() {
           <div className="order-1 lg:order-2 grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div className="rounded-2xl overflow-hidden h-48 bg-muted">
-                <img src="https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=400&q=80" alt="Handcrafting 1" className="w-full h-full object-cover" />
+                <CraftMedia src={(imgs as any).craft_image_1} alt="Handcrafting 1" className={imgClass} />
               </div>
               <div className="rounded-2xl overflow-hidden h-32 bg-muted">
-                <img src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80" alt="Handcrafting 2" className="w-full h-full object-cover" />
+                <CraftMedia src={(imgs as any).craft_image_2} alt="Handcrafting 2" className={imgClass} />
               </div>
             </div>
             <div className="space-y-4 mt-6">
               <div className="rounded-2xl overflow-hidden h-32 bg-muted">
-                <img src="https://images.unsplash.com/photo-1630299023697-8ec5f3182b5b?w=400&q=80" alt="Handcrafting 3" className="w-full h-full object-cover" />
+                <CraftMedia src={(imgs as any).craft_image_3} alt="Handcrafting 3" className={imgClass} />
               </div>
               <div className="rounded-2xl overflow-hidden h-48 bg-muted">
-                <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80" alt="Handcrafting 4" className="w-full h-full object-cover" />
+                <CraftMedia src={(imgs as any).craft_image_4} alt="Handcrafting 4" className={imgClass} />
               </div>
             </div>
           </div>

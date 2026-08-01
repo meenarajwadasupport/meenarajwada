@@ -4,8 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import {
   Loader2, Save, Phone, Mail, MapPin, Clock,
-  Instagram, Facebook, Youtube, Globe, Megaphone, AlertCircle,
+  Instagram, Facebook, Youtube, Globe, Megaphone, AlertCircle, ImageIcon,
 } from 'lucide-react'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 // ── Types ────────────────────────────────────────────────────
 interface Settings {
@@ -20,6 +21,10 @@ interface Settings {
   facebook_url:        string
   youtube_url:         string
   pinterest_url:       string
+  craft_image_1:       string
+  craft_image_2:       string
+  craft_image_3:       string
+  craft_image_4:       string
 }
 
 const DEFAULTS: Settings = {
@@ -33,6 +38,10 @@ const DEFAULTS: Settings = {
   facebook_url:        '',
   youtube_url:         '',
   pinterest_url:       '',
+  craft_image_1:       '',
+  craft_image_2:       '',
+  craft_image_3:       '',
+  craft_image_4:       '',
 }
 
 const TABS = [
@@ -40,6 +49,7 @@ const TABS = [
   { id: 'contact',      label: 'Contact',       icon: Phone },
   { id: 'social',       label: 'Social Links',  icon: Globe },
   { id: 'business',     label: 'Business Info', icon: Clock },
+  { id: 'craft',        label: 'Craft Images',  icon: ImageIcon },
 ]
 
 // ── Component ────────────────────────────────────────────────
@@ -76,6 +86,10 @@ export default function AdminSiteSettings() {
         facebook_url:        data.facebook_url        ?? '',
         youtube_url:         data.youtube_url         ?? '',
         pinterest_url:       data.pinterest_url       ?? '',
+        craft_image_1:       (data as any).craft_image_1 ?? '',
+        craft_image_2:       (data as any).craft_image_2 ?? '',
+        craft_image_3:       (data as any).craft_image_3 ?? '',
+        craft_image_4:       (data as any).craft_image_4 ?? '',
       })
       setHasChanges(false)
     }
@@ -295,6 +309,42 @@ export default function AdminSiteSettings() {
               <p><span className="font-medium text-foreground">WhatsApp:</span> {form.whatsapp_number || <span className="italic">not set</span>}</p>
               <p><span className="font-medium text-foreground">Instagram:</span> {form.instagram_url ? <a href={form.instagram_url} target="_blank" rel="noopener noreferrer" className="text-primary underline truncate block max-w-xs">{form.instagram_url}</a> : <span className="italic">not set</span>}</p>
               <p><span className="font-medium text-foreground">Announcement:</span> {form.announcement_active ? '✅ Visible' : '❌ Hidden'}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Craft Images ──────────────────────────────────── */}
+        {tab === 'craft' && (
+          <div className="p-5 space-y-5">
+            <p className="text-sm text-muted-foreground">
+              These 4 images appear in the <strong>"The Art of Handcrafting"</strong> section on the homepage.
+              Upload your own jewellery or craft photos — GIFs are also supported.
+            </p>
+
+            {/* SQL hint banner if columns may not exist */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 space-y-1">
+              <p className="font-semibold">⚠️ First-time setup: run this SQL in Supabase → SQL Editor</p>
+              <pre className="bg-amber-100 rounded p-2 overflow-x-auto text-[10px] font-mono whitespace-pre-wrap select-all">
+{`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_1 TEXT;
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_2 TEXT;
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_3 TEXT;
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS craft_image_4 TEXT;`}
+              </pre>
+              <p>You only need to run this once. After that, images will save and show on the homepage.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {([1, 2, 3, 4] as const).map(n => (
+                <div key={n}>
+                  <label className={lc}>Photo {n}</label>
+                  <ImageUpload
+                    value={(form as any)[`craft_image_${n}`]}
+                    onChange={url => set(`craft_image_${n}` as keyof Settings, url)}
+                    bucket="media"
+                    folder="craft"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}

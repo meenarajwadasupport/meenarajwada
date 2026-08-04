@@ -21,24 +21,26 @@ export default function AuthCallback() {
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
 
+        const isRecovery = params.get('type') === 'recovery'
+
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) throw error
           setStatus('success')
-          setTimeout(() => navigate('/', { replace: true }), 2000)
+          // Password reset flow → send to reset form; otherwise go home
+          setTimeout(() => navigate(isRecovery ? '/auth?mode=reset' : '/', { replace: true }), 1500)
           return
         }
 
         // Implicit flow: #access_token=... in hash (older Supabase default)
         const hash = window.location.hash
         if (hash && hash.includes('access_token')) {
-          // onAuthStateChange in AuthContext will pick up the session from the hash automatically
-          // Just wait a moment then redirect
+          const isHashRecovery = hash.includes('type=recovery')
           await new Promise(resolve => setTimeout(resolve, 1500))
           const { data } = await supabase.auth.getSession()
           if (data.session) {
             setStatus('success')
-            setTimeout(() => navigate('/', { replace: true }), 1500)
+            setTimeout(() => navigate(isHashRecovery ? '/auth?mode=reset' : '/', { replace: true }), 1500)
           } else {
             throw new Error('Could not read session from confirmation link.')
           }
@@ -76,8 +78,16 @@ export default function AuthCallback() {
         {status === 'success' && (
           <>
             <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-4" />
-            <h2 className="font-serif text-xl font-bold text-[#1a0a08] mb-2">Email confirmed!</h2>
-            <p className="text-sm text-[#9a8880]">Welcome to Meena Rajwada. Taking you to the store…</p>
+            <h2 className="font-serif text-xl font-bold text-[#1a0a08] mb-2">
+              {new URLSearchParams(window.location.search).get('type') === 'recovery'
+                ? 'Identity verified!'
+                : 'Email confirmed!'}
+            </h2>
+            <p className="text-sm text-[#9a8880]">
+              {new URLSearchParams(window.location.search).get('type') === 'recovery'
+                ? 'Redirecting you to set a new password…'
+                : 'Welcome to Meena Rajwada. Taking you to the store…'}
+            </p>
           </>
         )}
 

@@ -20,16 +20,13 @@ export default function AdminMessages() {
 
   const markRead = useMutation({
     mutationFn: async ({ id, is_read }: { id: string; is_read: boolean }) => {
-      // Use server-side API — bypasses RLS and works even if is_read column was just added
-      const res = await fetch('/api/admin-action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'mark_read', id, is_read: !is_read }),
-      })
-      if (!res.ok) {
-        // Non-fatal: silently ignore mark-read failures so the UI keeps working
-        console.warn('mark_read failed (likely missing is_read column — run supabase-rls-setup.sql)')
-      }
+      // Use Supabase directly — no server API or env vars needed
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ is_read: !is_read })
+        .eq('id', id)
+      // Non-fatal: if column doesn't exist yet, just log and continue
+      if (error) console.warn('mark_read:', error.message)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-messages'] })

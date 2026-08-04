@@ -113,16 +113,16 @@ export default function AdminDashboard() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(stats?.unreadMessages ?? 0) > 0 && (
             <Link to="/admin/messages" className="flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-200 hover:bg-red-100 transition-colors">
               <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -132,36 +132,36 @@ export default function AdminDashboard() {
           {(stats?.newCustom ?? 0) > 0 && (
             <Link to="/admin/custom-orders" className="flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200 hover:bg-amber-100 transition-colors">
               <Sparkles className="w-3 h-3" />
-              {stats?.newCustom} custom requests
+              {stats?.newCustom} custom
             </Link>
           )}
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Today's Revenue",  value: formatPrice(stats?.todayRevenue ?? 0),    icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600', sub: `${stats?.todayOrderCount ?? 0} orders today` },
           { label: 'Total Revenue',    value: formatPrice(stats?.totalRevenue ?? 0),     icon: TrendingUp, color: 'bg-green-50 text-green-700',    sub: 'All time (paid)' },
           { label: 'Total Orders',     value: stats?.totalOrders ?? 0,                   icon: ShoppingBag, color: 'bg-blue-50 text-blue-600',    sub: `${stats?.pendingOrders ?? 0} pending` },
           { label: 'Customers',        value: stats?.totalCustomers ?? 0,                icon: Users, color: 'bg-purple-50 text-purple-600',       sub: 'Registered users' },
         ].map(({ label, value, icon: Icon, color, sub }) => (
-          <div key={label} className="bg-white rounded-2xl border border-border p-5 hover:shadow-md transition-shadow">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-              <Icon className="w-5 h-5" />
+          <div key={label} className="bg-white rounded-2xl border border-border p-3 sm:p-5 hover:shadow-md transition-shadow">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${color}`}>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
-            <p className="text-[10px] text-muted-foreground/70 mt-1">{sub}</p>
+            <p className="text-lg sm:text-2xl font-bold text-foreground leading-tight">{value}</p>
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 mt-1">{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Revenue Chart + Status Breakdown */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {/* Revenue Bar Chart (last 7 days) */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-border p-5">
+        <div className="sm:col-span-2 lg:col-span-2 bg-white rounded-2xl border border-border p-4 sm:p-5">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-sm">Revenue — Last 7 Days</h2>
             <span className="text-xs text-muted-foreground">Paid orders only</span>
@@ -212,17 +212,47 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Orders + Alerts */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {/* Recent Orders */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="sm:col-span-2 lg:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="font-semibold text-sm">Recent Orders</h2>
             <Link to="/admin/orders" className="text-xs text-primary hover:underline flex items-center gap-0.5">
               View all <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile card list (< md) */}
+          <div className="md:hidden divide-y divide-border">
+            {(stats?.recentOrders ?? []).map((order: any) => (
+              <div key={order.id} className="flex items-center gap-3 px-4 py-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-mono text-[10px] font-bold text-muted-foreground">{order.id.slice(0, 8).toUpperCase()}</span>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full capitalize ${STATUS_COLOR[order.status]}`}>{order.status}</span>
+                  </div>
+                  <p className="text-xs font-semibold truncate">{order.customer_name}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold text-primary">{formatPrice(order.total_amount)}</p>
+                  <div className="flex justify-end mt-0.5">
+                    {order.payment_status === 'paid'
+                      ? <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                      : order.payment_status === 'failed'
+                      ? <XCircle className="w-3.5 h-3.5 text-red-500" />
+                      : <Clock className="w-3.5 h-3.5 text-yellow-500" />}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!stats?.recentOrders?.length && (
+              <p className="px-4 py-8 text-center text-muted-foreground text-sm">No orders yet</p>
+            )}
+          </div>
+
+          {/* Desktop table (≥ md) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-background/50">
                 <tr>

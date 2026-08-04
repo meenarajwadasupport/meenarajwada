@@ -241,73 +241,105 @@ export default function AdminProducts() {
           className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-lg outline-none focus:border-primary bg-white" />
       </div>
 
-      {/* Table */}
+      {/* Product List */}
       {isLoading ? (
         <div className="flex items-center justify-center h-32">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border bg-background/50">
-                <tr>
-                  {['Product', 'Category', 'Price', 'Stock', 'Tags', ''].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((p: any) => (
-                  <tr key={p.id} className="hover:bg-background/40 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {p.images?.[0]
-                          ? <img src={p.images[0]} alt="" className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
-                          : <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0"><ImageIcon className="w-4 h-4 text-muted-foreground" /></div>}
-                        <div>
-                          <p className="font-semibold leading-tight">{p.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.material}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {(categories as any[]).find(c => c.id === p.category_id)?.name ?? p.category_slug ?? '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-primary">{formatPrice(p.price)}</p>
-                      {p.mrp > p.price && <p className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</p>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${p.stock === 0 ? 'bg-red-100 text-red-700' : p.stock <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                        {p.stock === 0 ? 'Out' : p.stock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {p.is_active      && <span title="Visible on site"        className="text-[9px] bg-green-100  text-green-700  px-1.5 py-0.5 rounded-full font-bold">Active</span>}
-                        {p.is_featured    && <span title="Best Sellers section"   className="text-[9px] bg-blue-100   text-blue-700   px-1.5 py-0.5 rounded-full font-bold">Best Sellers</span>}
-                        {p.is_bestseller  && <span title="Our Pick section"       className="text-[9px] bg-amber-100  text-amber-700  px-1.5 py-0.5 rounded-full font-bold">Our Pick</span>}
-                        {p.is_new_arrival && <span title="New Arrival badge"      className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">New</span>}
-                        {p.in_hero_slider && <span title="Hero Slider banner"     className="text-[9px] bg-rose-100   text-rose-700   px-1.5 py-0.5 rounded-full font-bold">Hero</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => openForm(p)} className="p-1.5 hover:bg-background rounded-lg"><Pencil className="w-4 h-4" /></button>
-                        <button onClick={() => window.confirm(`Delete "${p.name}"?`) && deleteProduct.mutate(p)}
-                          className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filtered.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground text-sm">No products found.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-border flex flex-col items-center justify-center py-16 text-center">
+          <Package className="w-10 h-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground">No products found.</p>
         </div>
+      ) : (
+        <>
+          {/* Mobile card list (< sm) */}
+          <div className="sm:hidden space-y-2">
+            {filtered.map((p: any) => (
+              <div key={p.id} className="bg-white rounded-xl border border-border flex items-center gap-3 p-3">
+                {p.images?.[0]
+                  ? <img src={p.images[0]} alt="" className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
+                  : <div className="w-14 h-14 bg-muted rounded-lg flex items-center justify-center flex-shrink-0"><ImageIcon className="w-5 h-5 text-muted-foreground" /></div>}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm leading-tight truncate">{p.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{p.material}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-bold text-primary">{formatPrice(p.price)}</span>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${p.stock === 0 ? 'bg-red-100 text-red-700' : p.stock <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                      {p.stock === 0 ? 'Out' : `${p.stock} left`}
+                    </span>
+                    {!p.is_active && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-bold">Hidden</span>}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button onClick={() => openForm(p)} className="p-2 hover:bg-background rounded-lg"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => window.confirm(`Delete "${p.name}"?`) && deleteProduct.mutate(p)}
+                    className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table (≥ sm) */}
+          <div className="hidden sm:block bg-white rounded-2xl border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b border-border bg-background/50">
+                  <tr>
+                    {['Product', 'Category', 'Price', 'Stock', 'Tags', ''].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filtered.map((p: any) => (
+                    <tr key={p.id} className="hover:bg-background/40 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.images?.[0]
+                            ? <img src={p.images[0]} alt="" className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
+                            : <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0"><ImageIcon className="w-4 h-4 text-muted-foreground" /></div>}
+                          <div>
+                            <p className="font-semibold leading-tight">{p.name}</p>
+                            <p className="text-xs text-muted-foreground">{p.material}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {(categories as any[]).find(c => c.id === p.category_id)?.name ?? p.category_slug ?? '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-bold text-primary">{formatPrice(p.price)}</p>
+                        {p.mrp > p.price && <p className="text-xs text-muted-foreground line-through">{formatPrice(p.mrp)}</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${p.stock === 0 ? 'bg-red-100 text-red-700' : p.stock <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                          {p.stock === 0 ? 'Out' : p.stock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {p.is_active      && <span title="Visible on site"        className="text-[9px] bg-green-100  text-green-700  px-1.5 py-0.5 rounded-full font-bold">Active</span>}
+                          {p.is_featured    && <span title="Best Sellers section"   className="text-[9px] bg-blue-100   text-blue-700   px-1.5 py-0.5 rounded-full font-bold">Best Sellers</span>}
+                          {p.is_bestseller  && <span title="Our Pick section"       className="text-[9px] bg-amber-100  text-amber-700  px-1.5 py-0.5 rounded-full font-bold">Our Pick</span>}
+                          {p.is_new_arrival && <span title="New Arrival badge"      className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">New</span>}
+                          {p.in_hero_slider && <span title="Hero Slider banner"     className="text-[9px] bg-rose-100   text-rose-700   px-1.5 py-0.5 rounded-full font-bold">Hero</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => openForm(p)} className="p-1.5 hover:bg-background rounded-lg"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => window.confirm(`Delete "${p.name}"?`) && deleteProduct.mutate(p)}
+                            className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Add / Edit Modal ─────────────────────────────────────────────── */}

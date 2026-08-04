@@ -33,45 +33,62 @@ export default function AdminCustomOrders() {
     },
   })
 
+  // ── Direct DB update (no server API needed — works without Vercel env vars) ──
   const update = useMutation({
     mutationFn: async ({ id, status, quoted_price, admin_notes, send_email }: {
       id: string; status?: string; quoted_price?: number; admin_notes?: string; send_email?: boolean
     }) => {
-      const res = await fetch('/api/admin-action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_order', id, status, quoted_price, admin_notes, send_email }),
-      })
-      if (!res.ok) {
-        let errMsg = 'Could not update'
-        try { const j = await res.json(); errMsg = j.error ?? errMsg } catch {}
-        if (res.status === 500) errMsg += ' — Check Vercel env vars: SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY'
-        throw new Error(errMsg)
+      // 1. Update the DB directly via Supabase client
+      const payload: Record<string, any> = {}
+      if (status      !== undefined) payload.status      = status
+      if (quoted_price !== undefined) payload.quoted_price = quoted_price
+      if (admin_notes  !== undefined) payload.admin_notes  = admin_notes
+
+      if (Object.keys(payload).length > 0) {
+        const { error } = await supabase
+          .from('custom_order_requests')
+          .update(payload)
+          .eq('id', id)
+        if (error) throw new Error(error.message)
+      }
+
+      // 2. Send email via API only if requested (requires Resend env var on Vercel)
+      if (send_email && quoted_price) {
+        try {
+          const res = await fetch('/api/admin-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'update_order', id, quoted_price, send_email: true }),
+          })
+          if (!res.ok) {
+            // Email failed — DB was already saved, just warn
+            console.warn('Quote email could not be sent — check RESEND_API_KEY in Vercel env vars')
+            toast.warning('Saved ✓ — email not sent (set RESEND_API_KEY in Vercel)')
+            return
+          }
+        } catch {
+          toast.warning('Saved ✓ — email not sent (check internet / Vercel config)')
+          return
+        }
       }
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['admin-custom-orders'] })
-      if (vars.send_email) toast.success('Quote sent via email ✓')
-      else toast.success('Updated')
+      qc.invalidateQueries({ queryKey: ['admin-badges'] })
+      if (vars.send_email) toast.success('Quote saved and email sent ✓')
+      else toast.success('Saved ✓')
     },
     onError: (e: any) => toast.error(e.message ?? 'Could not update'),
   })
 
   const deleteOrder = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch('/api/admin-action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_order', id }),
-      })
-      if (!res.ok) {
-        let errMsg = 'Could not delete'
-        try { const j = await res.json(); errMsg = j.error ?? errMsg } catch {}
-        throw new Error(errMsg)
-      }
+      const { error } = await supabase.from('custom_order_requests').delete().eq('id', id)
+      if (error) throw new Error(error.message)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-custom-orders'] })
+      qc.invalidateQueries({ queryKey: ['admin-badges'] })
       toast.success('Order deleted')
     },
     onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
@@ -247,28 +264,28 @@ export default function AdminCustomOrders() {
                   )}
 
                   {/* Admin Actions */}
-                  <div className="flex flex-wrap gap-3 pt-3 border-t border-border items-center">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-3 border-t border-border">
 
                     {/* Status */}
                     <div className="flex items-center gap-2">
-                      <label className="text-xs font-semibold text-muted-foreground">Status:</label>
+                      <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Status:</label>
                       <select value={order.status ?? 'new'}
                         onChange={e => update.mutate({ id: order.id, status: e.target.value })}
                         disabled={update.isPending}
-                        className="border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors">
+                        className="flex-1 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors">
                         {STATUSES.map(s => <option key={s} value={s} className="capitalize">{s.replace('_', ' ')}</option>)}
                       </select>
                     </div>
 
                     {/* Quoted Price */}
-                    <div className="flex items-center gap-2">
-                      <IndianRupee className="w-4 h-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <IndianRupee className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       <input
                         type="number"
                         placeholder="Quote price ₹"
                         value={quotes[order.id] ?? (order.quoted_price ? String(order.quoted_price) : '')}
                         onChange={e => setQuotes(prev => ({ ...prev, [order.id]: e.target.value }))}
-                        className="w-32 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
+                        className="w-32 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <button
                         onClick={() => quotes[order.id] && update.mutate({
@@ -278,10 +295,10 @@ export default function AdminCustomOrders() {
                           send_email: true,
                         })}
                         disabled={update.isPending || !quotes[order.id]}
-                        title="Saves the quote and sends a professional email to the customer"
-                        className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 inline-flex items-center gap-1.5"
+                        title="Saves the quote price and sends a professional email to the customer"
+                        className="bg-primary text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 inline-flex items-center gap-1.5 whitespace-nowrap"
                       >
-                        {update.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+                        {update.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
                         Send Quote via Email
                       </button>
                     </div>

@@ -138,47 +138,44 @@ export default function AdminOrders() {
 
               {/* Order Row */}
               <div
-                className="flex flex-wrap items-center gap-3 p-4 cursor-pointer hover:bg-background/50 transition-colors"
+                className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 cursor-pointer hover:bg-background/50 transition-colors"
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}
               >
                 {/* ID + date */}
-                <div className="min-w-0">
-                  <p className="font-mono font-bold text-sm text-foreground">#{order.id.slice(0, 8).toUpperCase()}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
+                <div className="min-w-0 flex-shrink-0">
+                  <p className="font-mono font-bold text-xs sm:text-sm text-foreground">#{order.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                    {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}
                   </p>
                 </div>
 
                 {/* Customer */}
-                <div className="flex-1 min-w-[120px]">
-                  <p className="font-semibold text-sm">{order.customer_name}</p>
-                  <p className="text-xs text-muted-foreground">{order.customer_phone}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-xs sm:text-sm truncate">{order.customer_name}</p>
+                  <p className="text-[10px] text-muted-foreground hidden sm:block">{order.customer_phone}</p>
                 </div>
 
-                {/* Items count */}
-                <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
-                  <Package className="w-3.5 h-3.5" />
-                  {order.order_items?.length ?? 0} item{(order.order_items?.length ?? 0) !== 1 ? 's' : ''}
-                </span>
-
                 {/* Amount */}
-                <p className="font-bold text-primary text-sm">{formatPrice(order.total_amount)}</p>
+                <p className="font-bold text-primary text-xs sm:text-sm whitespace-nowrap flex-shrink-0">{formatPrice(order.total_amount)}</p>
 
-                {/* Payment */}
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border capitalize ${PAYMENT_BADGE[order.payment_status] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                {/* Payment — icon only on mobile */}
+                <span className={`hidden sm:inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border capitalize ${PAYMENT_BADGE[order.payment_status] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                   {PAYMENT_ICON[order.payment_status] ?? <Clock className="w-4 h-4 text-muted-foreground" />}
-                  <span className="hidden sm:inline">{order.payment_status}</span>
+                  {order.payment_status}
+                </span>
+                <span className="sm:hidden flex-shrink-0">
+                  {PAYMENT_ICON[order.payment_status] ?? <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
                 </span>
 
                 {/* Status */}
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border capitalize ${STATUS_COLOR[order.status]}`}>
+                <span className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize whitespace-nowrap flex-shrink-0 ${STATUS_COLOR[order.status]}`}>
                   {order.status}
                 </span>
 
                 {/* Expand icon */}
                 {expanded === order.id
-                  ? <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" />
-                  : <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />}
+                  ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
               </div>
 
               {/* Expanded Detail */}
@@ -226,34 +223,34 @@ export default function AdminOrders() {
                   </div>
 
                   {/* Admin Actions */}
-                  <div className="flex flex-wrap gap-3 pt-2 border-t border-border items-center">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2 border-t border-border">
                     {/* Status update */}
                     <div className="flex items-center gap-2">
-                      <label className="text-xs font-semibold text-muted-foreground">Status:</label>
+                      <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Status:</label>
                       <select
                         value={order.status}
                         onChange={e => updateOrder.mutate({ id: order.id, status: e.target.value })}
                         disabled={updateOrder.isPending}
-                        className="border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors"
+                        className="flex-1 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white capitalize disabled:opacity-60 transition-colors"
                       >
                         {STATUSES.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
                       </select>
                     </div>
 
                     {/* Tracking */}
-                    <div className="flex items-center gap-2 flex-1 min-w-[200px] flex-wrap sm:flex-nowrap">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Truck className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       <input
                         placeholder="Tracking ID"
                         value={trackingInputs[order.id] ?? order.tracking_id ?? ''}
                         onChange={e => setTrackingInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
-                        className="flex-1 min-w-[120px] border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
+                        className="w-36 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <input
-                        placeholder="Courier (e.g. BlueDart)"
+                        placeholder="Courier (BlueDart…)"
                         defaultValue={order.courier ?? ''}
                         onBlur={e => e.target.value && updateOrder.mutate({ id: order.id, courier: e.target.value })}
-                        className="w-28 border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary bg-white transition-colors"
+                        className="w-28 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <button
                         onClick={() => {

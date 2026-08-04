@@ -15,7 +15,7 @@ const SORT_OPTIONS = [
 export default function Shop() {
   const { data: products = [], isLoading } = useProducts()
   const [sort, setSort] = useState('default')
-  const [maxPrice, setMaxPrice] = useState(10000)
+  const [maxPrice, setMaxPrice] = useState(15000)
 
   const sorted = [...products]
     .filter(p => p.price <= maxPrice)

@@ -36,7 +36,7 @@ export default function MyOrders() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Order ID</p>
-                    <p className="font-mono font-semibold">{order.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="font-mono font-semibold">{order.order_number ?? order.id.slice(0, 8).toUpperCase()}</p>
                   </div>
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${STATUS_COLORS[order.status] ?? 'bg-muted text-foreground'}`}>
                     {order.status}

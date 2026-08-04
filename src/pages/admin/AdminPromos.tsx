@@ -44,8 +44,12 @@ export default function AdminPromos() {
   })
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('featured_promos').delete().eq('id', id) },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('featured_promos').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-promos'] }); toast.success('Deleted') },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-white'

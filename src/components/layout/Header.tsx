@@ -360,7 +360,7 @@ export default function Header() {
             <span className="text-[9px] font-semibold tracking-wide">Home</span>
           </Link>
 
-          <button onClick={() => navigate('/account')} className={`flex flex-col items-center gap-1 px-3 py-1.5 transition-colors ${location.pathname.startsWith('/account') ? 'text-primary' : 'text-muted-foreground'}`}>
+          <button onClick={() => navigate(user ? '/account' : '/auth')} className={`flex flex-col items-center gap-1 px-3 py-1.5 transition-colors ${location.pathname.startsWith('/account') ? 'text-primary' : 'text-muted-foreground'}`}>
             <User className="w-5 h-5" strokeWidth={location.pathname.startsWith('/account') ? 2 : 1.6} />
             <span className="text-[9px] font-semibold tracking-wide">Account</span>
           </button>

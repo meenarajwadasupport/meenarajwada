@@ -25,22 +25,34 @@ export default function AdminTestimonials() {
   const save = useMutation({
     mutationFn: async () => {
       const p = { customer_name: form.customer_name, location: form.location, review: form.review, rating: Number(form.rating), avatar: form.avatar, is_active: form.is_active, display_order: Number(form.display_order) }
-      if (editing) await supabase.from('testimonials').update(p).eq('id', editing.id)
-      else await supabase.from('testimonials').insert(p)
+      if (editing) {
+        const { error } = await supabase.from('testimonials').update(p).eq('id', editing.id)
+        if (error) throw new Error(error.message)
+      } else {
+        const { error } = await supabase.from('testimonials').insert(p)
+        if (error) throw new Error(error.message)
+      }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-testimonials'] }); toast.success('Saved'); setShowForm(false) },
+    onError: (e: any) => toast.error(e.message ?? 'Could not save'),
   })
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('testimonials').delete().eq('id', id) },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-testimonials'] }),
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('testimonials').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-testimonials'] }); toast.success('Deleted') },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      await supabase.from('testimonials').update({ is_active: !is_active }).eq('id', id)
+      const { error } = await supabase.from('testimonials').update({ is_active: !is_active }).eq('id', id)
+      if (error) throw new Error(error.message)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-testimonials'] }),
+    onError: (e: any) => toast.error(e.message ?? 'Could not update'),
   })
 
   const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 bg-white transition-colors'

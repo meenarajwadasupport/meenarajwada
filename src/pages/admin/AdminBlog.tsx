@@ -25,15 +25,25 @@ export default function AdminBlog() {
   const save = useMutation({
     mutationFn: async () => {
       const payload = { title: form.title, slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''), excerpt: form.excerpt, content: form.content, cover_image: form.cover_image, is_published: form.is_published }
-      if (editing) await supabase.from('blog_posts').update(payload).eq('id', editing.id)
-      else await supabase.from('blog_posts').insert(payload)
+      if (editing) {
+        const { error } = await supabase.from('blog_posts').update(payload).eq('id', editing.id)
+        if (error) throw new Error(error.message)
+      } else {
+        const { error } = await supabase.from('blog_posts').insert(payload)
+        if (error) throw new Error(error.message)
+      }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-blog'] }); toast.success('Saved'); setShowForm(false) },
+    onError: (e: any) => toast.error(e.message ?? 'Could not save'),
   })
 
   const del = useMutation({
-    mutationFn: async (id: string) => supabase.from('blog_posts').delete().eq('id', id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-blog'] }),
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-blog'] }); toast.success('Deleted') },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 bg-white transition-colors'

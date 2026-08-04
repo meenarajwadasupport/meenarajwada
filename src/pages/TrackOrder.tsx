@@ -26,7 +26,7 @@ export default function TrackOrder() {
     const { data, error: err } = await supabase
       .from('orders')
       .select('*')
-      .ilike('id', `${search}%`)
+      .eq('order_number', search)
       .eq('customer_phone', phone.trim())
       .maybeSingle()
     setLoading(false)

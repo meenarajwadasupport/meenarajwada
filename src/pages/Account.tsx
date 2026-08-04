@@ -65,7 +65,7 @@ export default function Account() {
             ) : orders.map(order => (
               <div key={order.id} className="bg-white rounded-2xl border border-border p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-mono text-sm font-semibold">{order.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="font-mono text-sm font-semibold">{order.order_number ?? order.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-xs text-muted-foreground mt-0.5 capitalize">{order.status}</p>
                 </div>
                 <div className="text-right">

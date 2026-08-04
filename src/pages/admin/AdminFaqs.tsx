@@ -45,15 +45,21 @@ export default function AdminFaqs() {
   })
 
   const del = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('faqs').delete().eq('id', id) },
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('faqs').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-faqs'] }); toast.success('Deleted') },
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const toggle = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      await supabase.from('faqs').update({ is_active: !is_active }).eq('id', id)
+      const { error } = await supabase.from('faqs').update({ is_active: !is_active }).eq('id', id)
+      if (error) throw new Error(error.message)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-faqs'] }),
+    onError: (e: any) => toast.error(e.message ?? 'Could not update'),
   })
 
   const inputCls = 'w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-white'

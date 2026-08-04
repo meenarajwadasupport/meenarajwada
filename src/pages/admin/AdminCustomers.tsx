@@ -11,19 +11,22 @@ export default function AdminCustomers() {
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['admin-customers'],
     queryFn: async () => {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
+      // Use RPC to bypass RLS — only works for admin users
+      const { data: profiles, error } = await supabase.rpc('get_all_profiles')
 
-      if (!profiles?.length) return []
+      // Fallback: if RPC not created yet, fall back to own profile only
+      const profileList = error
+        ? ((await supabase.from('profiles').select('*').order('created_at', { ascending: false })).data ?? [])
+        : (profiles ?? [])
+
+      if (!profileList?.length) return []
 
       // Fetch orders to calculate per-customer stats
       const { data: orders } = await supabase
         .from('orders')
         .select('id, customer_email, total_amount, payment_status, status, created_at')
 
-      return profiles.map((p: any) => {
+      return profileList.map((p: any) => {
         const customerOrders = (orders ?? []).filter(
           (o: any) => o.customer_email === p.email
         )

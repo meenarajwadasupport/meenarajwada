@@ -54,11 +54,27 @@ export default function AdminCustomOrders() {
 
       // 2. Send email via API only if requested (requires RESEND_API_KEY in Vercel)
       if (send_email && quoted_price) {
+        // Find the order from local cache so we don't need Supabase in the API
+        const order = (orders as any[]).find((o: any) => o.id === id)
+        const customerEmail = order?.email ?? order?.customer_email ?? ''
+        const customerName  = order?.name  ?? order?.customer_name  ?? 'Valued Customer'
+        const designType    = order?.piece_type ?? order?.design_type ?? ''
+        const description   = order?.description ?? ''
+        const occasion      = order?.occasion ?? ''
+
         try {
           const res = await fetch('/api/admin-action', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'update_order', id, quoted_price, send_email: true }),
+            body: JSON.stringify({
+              action: 'send_quote_email',
+              customer_email: customerEmail,
+              customer_name:  customerName,
+              design_type:    designType,
+              description,
+              occasion,
+              quoted_price,
+            }),
           })
           const json = await res.json().catch(() => ({}))
           if (!res.ok) {

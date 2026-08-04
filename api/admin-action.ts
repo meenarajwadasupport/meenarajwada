@@ -181,6 +181,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true })
   }
 
+  // ── Action: send quote email (no Supabase needed — data comes from frontend) ──
+  if (action === 'send_quote_email') {
+    const { customer_email, customer_name, design_type, description, occasion, quoted_price } = req.body
+
+    if (!customer_email) return res.status(400).json({ error: 'Missing customer_email' })
+    if (!quoted_price)   return res.status(400).json({ error: 'Missing quoted_price' })
+
+    const resend = getResend()
+    if (!resend) {
+      return res.status(200).json({
+        success: true,
+        email_sent: false,
+        email_error: 'RESEND_API_KEY not set in Vercel environment variables',
+      })
+    }
+
+    try {
+      const normOrder = {
+        customer_name:  customer_name  ?? 'Valued Customer',
+        customer_email,
+        design_type:    design_type    ?? '',
+        description:    description    ?? '',
+        occasion:       occasion       ?? '',
+      }
+
+      const result = await resend.emails.send({
+        from:    'Meena Rajwada <noreply@meenarajwada.com>',
+        to:      customer_email,
+        replyTo: 'support@meenarajwada.com',
+        subject: `Your Custom Jewellery Quote from Meena Rajwada ✨`,
+        html:    quoteEmailHtml(normOrder, Number(quoted_price)),
+      })
+
+      if ((result as any).error) {
+        const emailError = (result as any).error.message ?? 'Email provider error'
+        console.error('Quote email error:', emailError)
+        return res.status(200).json({ success: true, email_sent: false, email_error: emailError })
+      }
+
+      console.log('Quote email sent to', customer_email)
+      return res.status(200).json({ success: true, email_sent: true })
+    } catch (err: any) {
+      console.error('Quote email exception:', err.message)
+      return res.status(200).json({ success: true, email_sent: false, email_error: err.message })
+    }
+  }
+
   // ── Action: mark contact message read/unread ─────────────────
   if (action === 'mark_read') {
     const { id, is_read } = req.body

@@ -11,13 +11,10 @@ export default function AdminCustomers() {
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['admin-customers'],
     queryFn: async () => {
-      // Use RPC to bypass RLS — only works for admin users
-      const { data: profiles, error } = await supabase.rpc('get_all_profiles')
-
-      // Fallback: if RPC not created yet, fall back to own profile only
-      const profileList = error
-        ? ((await supabase.from('profiles').select('*').order('created_at', { ascending: false })).data ?? [])
-        : (profiles ?? [])
+      const { data: profileList } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
 
       if (!profileList?.length) return []
 

@@ -2,14 +2,15 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
-// Service role client — bypasses all Supabase RLS policies
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Both clients are created lazily so missing env vars do NOT crash
+// the entire serverless function on cold start.
+function getSupabase() {
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
+  if (!url || !key) return null
+  return createClient(url, key)
+}
 
-// Resend is created lazily inside the handler so a missing API key
-// does NOT crash the entire serverless function on cold start.
 function getResend() {
   if (!process.env.RESEND_API_KEY) return null
   return new Resend(process.env.RESEND_API_KEY)
@@ -96,6 +97,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const fullPayload = { ...corePayload }
     if (quoted_price !== undefined) fullPayload.quoted_price = Number(quoted_price)
     if (admin_notes  !== undefined) fullPayload.admin_notes  = admin_notes
+
+    const supabase = getSupabase()
+    if (!supabase) return res.status(500).json({ error: 'Supabase not configured' })
 
     let { error: dbErr } = await supabase
       .from('custom_order_requests')
@@ -233,6 +237,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { id, is_read } = req.body
     if (!id) return res.status(400).json({ error: 'Missing message id' })
 
+    const supabase = getSupabase()
+    if (!supabase) return res.status(500).json({ error: 'Supabase not configured' })
+
     const { error: dbErr } = await supabase
       .from('contact_messages')
       .update({ is_read: Boolean(is_read) })
@@ -251,6 +258,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { id } = req.body
     if (!id) return res.status(400).json({ error: 'Missing order id' })
 
+    const supabase = getSupabase()
+    if (!supabase) return res.status(500).json({ error: 'Supabase not configured' })
+
     const { error: dbErr } = await supabase
       .from('custom_order_requests')
       .delete()
@@ -268,6 +278,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (action === 'sync_hero_slide') {
     const { product, enable } = req.body
     if (!product) return res.status(400).json({ error: 'Missing product' })
+
+    const supabase = getSupabase()
+    if (!supabase) return res.status(500).json({ error: 'Supabase not configured' })
 
     const slug = product.slug || (product.name ?? '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const ctaUrl = `/product/${slug}`

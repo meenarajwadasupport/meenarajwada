@@ -144,16 +144,16 @@ export default function AdminDashboard() {
           { label: "Today's Revenue",  value: formatPrice(stats?.todayRevenue ?? 0),    icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600', sub: `${stats?.todayOrderCount ?? 0} orders today` },
           { label: 'Total Revenue',    value: formatPrice(stats?.totalRevenue ?? 0),     icon: TrendingUp, color: 'bg-green-50 text-green-700',    sub: 'All time (paid)' },
           { label: 'Total Orders',     value: stats?.totalOrders ?? 0,                   icon: ShoppingBag, color: 'bg-blue-50 text-blue-600',    sub: `${stats?.pendingOrders ?? 0} pending` },
-          { label: 'Customers',        value: stats?.totalCustomers ?? 0,                icon: Users, color: 'bg-purple-50 text-purple-600',       sub: 'Registered users' },
-        ].map(({ label, value, icon: Icon, color, sub }) => (
-          <div key={label} className="bg-white rounded-2xl border border-border p-3 sm:p-5 hover:shadow-md transition-shadow">
+          { label: 'Customers',        value: stats?.totalCustomers ?? 0,                icon: Users, color: 'bg-purple-50 text-purple-600',       sub: 'Registered users', to: '/admin/customers' },
+        ].map(({ label, value, icon: Icon, color, sub, to }: any) => (
+          <Link key={label} to={to ?? '#'} className={`bg-white rounded-2xl border border-border p-3 sm:p-5 hover:shadow-md transition-shadow block ${to ? 'cursor-pointer' : ''}`}>
             <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${color}`}>
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <p className="text-lg sm:text-2xl font-bold text-foreground leading-tight">{value}</p>
             <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
             <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 mt-1">{sub}</p>
-          </div>
+          </Link>
         ))}
       </div>
 

@@ -50,6 +50,7 @@ import AdminFaqs from '@/pages/admin/AdminFaqs'
 import AdminPromos from '@/pages/admin/AdminPromos'
 import AdminInstagram from '@/pages/admin/AdminInstagram'
 import AdminCollections from '@/pages/admin/AdminCollections'
+import AdminCustomers from '@/pages/admin/AdminCustomers'
 
 export default function App() {
   return (
@@ -104,6 +105,7 @@ export default function App() {
                 <Route path="promos" element={<AdminPromos />} />
                 <Route path="instagram" element={<AdminInstagram />} />
                 <Route path="collections" element={<AdminCollections />} />
+                <Route path="customers" element={<AdminCustomers />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, LogOut, Menu, X, Sparkles,
-  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid,
+  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid, Users,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase'
 const NAV = [
   { to: '/admin',               label: 'Dashboard',     icon: LayoutDashboard, end: true },
   { to: '/admin/orders',        label: 'Orders',        icon: ShoppingBag,     badge: 'orders' },
+  { to: '/admin/customers',     label: 'Customers',     icon: Users },
   { to: '/admin/products',      label: 'Products',      icon: Package },
   { to: '/admin/custom-orders', label: 'Custom Orders', icon: Sparkles,        badge: 'custom' },
   { to: '/admin/categories',    label: 'Categories',    icon: Tag },

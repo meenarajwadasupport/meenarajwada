@@ -52,7 +52,7 @@ export default function AdminCustomOrders() {
         if (error) throw new Error(error.message)
       }
 
-      // 2. Send email via API only if requested (requires Resend env var on Vercel)
+      // 2. Send email via API only if requested (requires RESEND_API_KEY in Vercel)
       if (send_email && quoted_price) {
         try {
           const res = await fetch('/api/admin-action', {
@@ -60,23 +60,32 @@ export default function AdminCustomOrders() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'update_order', id, quoted_price, send_email: true }),
           })
+          const json = await res.json().catch(() => ({}))
           if (!res.ok) {
-            // Email failed — DB was already saved, just warn
-            console.warn('Quote email could not be sent — check RESEND_API_KEY in Vercel env vars')
-            toast.warning('Saved ✓ — email not sent (set RESEND_API_KEY in Vercel)')
-            return
+            toast.warning('Quote saved — email not sent (server error)')
+            return { email_sent: false }
           }
+          if (json.email_sent === false) {
+            const hint = json.email_error?.includes('RESEND_API_KEY')
+              ? 'Add RESEND_API_KEY in Vercel → Settings → Environment Variables'
+              : (json.email_error ?? 'Email provider error')
+            toast.warning(`Quote saved ✓ — email not sent: ${hint}`)
+            return { email_sent: false }
+          }
+          return { email_sent: true }
         } catch {
-          toast.warning('Saved ✓ — email not sent (check internet / Vercel config)')
-          return
+          toast.warning('Quote saved ✓ — email not sent (network error)')
+          return { email_sent: false }
         }
       }
+      return { email_sent: false }
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (result: any, vars) => {
       qc.invalidateQueries({ queryKey: ['admin-custom-orders'] })
       qc.invalidateQueries({ queryKey: ['admin-badges'] })
-      if (vars.send_email) toast.success('Quote saved and email sent ✓')
-      else toast.success('Saved ✓')
+      if (vars.send_email && result?.email_sent) toast.success('Quote saved and email sent ✓')
+      else if (!vars.send_email) toast.success('Saved ✓')
+      // If send_email but !email_sent — warning was already shown inside mutationFn
     },
     onError: (e: any) => toast.error(e.message ?? 'Could not update'),
   })

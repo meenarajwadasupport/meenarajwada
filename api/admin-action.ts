@@ -139,22 +139,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         occasion:       order?.occasion ?? '',
       }
 
-      if (customerEmail) {
+      let emailSent = false
+      let emailError = ''
+
+      if (!process.env.RESEND_API_KEY) {
+        emailError = 'RESEND_API_KEY not set in Vercel environment variables'
+        console.warn(emailError)
+      } else if (!customerEmail) {
+        emailError = 'No customer email found for this order'
+        console.warn(emailError, id)
+      } else {
         try {
-          await resend.emails.send({
+          const result = await resend.emails.send({
             from: 'Meena Rajwada <noreply@meenarajwada.com>',
             to: customerEmail,
             replyTo: 'support@meenarajwada.com',
             subject: `Your Custom Jewellery Quote from Meena Rajwada ✨`,
             html: quoteEmailHtml(normOrder, Number(quoted_price)),
           })
+          if ((result as any).error) {
+            emailError = (result as any).error.message ?? 'Email provider error'
+            console.error('Email send error:', emailError)
+          } else {
+            emailSent = true
+          }
         } catch (emailErr: any) {
-          console.error('Email error (non-fatal):', emailErr.message)
-          // Don't fail the whole request if only email fails — DB was already updated
+          emailError = emailErr.message ?? 'Unknown email error'
+          console.error('Email exception:', emailError)
         }
-      } else {
-        console.warn('No customer email found for order', id, '— email not sent')
       }
+
+      return res.status(200).json({ success: true, email_sent: emailSent, email_error: emailError || undefined })
     }
 
     return res.status(200).json({ success: true })

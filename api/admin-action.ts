@@ -8,7 +8,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// Resend is created lazily inside the handler so a missing API key
+// does NOT crash the entire serverless function on cold start.
+function getResend() {
+  if (!process.env.RESEND_API_KEY) return null
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 // ── Quote email template ─────────────────────────────────────
 function quoteEmailHtml(order: any, quotedPrice: number) {
@@ -142,7 +147,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       let emailSent = false
       let emailError = ''
 
-      if (!process.env.RESEND_API_KEY) {
+      const resend = getResend()
+      if (!resend) {
         emailError = 'RESEND_API_KEY not set in Vercel environment variables'
         console.warn(emailError)
       } else if (!customerEmail) {

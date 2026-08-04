@@ -3,7 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-const resend = new Resend(process.env.RESEND_API_KEY!)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) return null
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
@@ -29,6 +32,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const itemsHtml = order.order_items
       ?.map((item: any) => `<li>${item.product_name} (${item.size}) × ${item.quantity} — ₹${(item.price * item.quantity).toLocaleString('en-IN')}</li>`)
       .join('') ?? ''
+
+    const resend = getResend()
+    if (!resend) return res.status(500).json({ error: 'RESEND_API_KEY not configured in Vercel' })
 
     await resend.emails.send({
       from: 'orders@meenarajwada.com',

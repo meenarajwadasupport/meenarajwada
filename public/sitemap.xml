@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://meena-rajwada.vercel.app/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/shop</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/customize</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/our-story</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/blog</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/contact</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/faq</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/track-order</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/shipping-policy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/return-policy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
-  <url><loc>https://meena-rajwada.vercel.app/terms</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/shop</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/customize</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/our-story</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/blog</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/contact</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/faq</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/track-order</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/shipping-policy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/return-policy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://www.meenarajwada.com/terms</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
 </urlset>

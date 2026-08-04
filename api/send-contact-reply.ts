@@ -1,13 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+function getResend() {
+  if (!process.env.RESEND_API_KEY) return null
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
   const { name, email, subject, message } = req.body
   if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' })
+
+  const resend = getResend()
+  if (!resend) return res.status(500).json({ error: 'RESEND_API_KEY not configured in Vercel' })
 
   try {
     const { data, error } = await resend.emails.send({

@@ -61,7 +61,14 @@ export default function AuthPage() {
 
   async function handleGoogle() {
     try { await signInWithGoogle() }
-    catch (e: any) { toast.error(e.message ?? 'Google sign-in failed') }
+    catch (e: any) {
+      const msg = e.message ?? ''
+      if (msg.includes('provider is not enabled') || msg.includes('validation_failed')) {
+        toast.error('Google sign-in is being set up — please use email & password for now.')
+      } else {
+        toast.error(msg || 'Google sign-in failed')
+      }
+    }
   }
 
   async function handleForgot(data: ForgotData) {

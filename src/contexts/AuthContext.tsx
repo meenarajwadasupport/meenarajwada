@@ -98,7 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signUp(email: string, password: string, fullName: string) {
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName } }
+      options: {
+        data: { full_name: fullName },
+        // Always redirect to the current origin so confirmation link works on production
+        emailRedirectTo: window.location.origin + '/auth/callback',
+      },
     })
     if (error) throw error
 
@@ -107,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.from('profiles').upsert({
         id: data.user.id,
         full_name: fullName,
+        email,
         is_admin: false,
       }, { onConflict: 'id' })
     }

@@ -20,6 +20,7 @@ import MyOrders from '@/pages/MyOrders'
 import TrackOrder from '@/pages/TrackOrder'
 import Account from '@/pages/Account'
 import AuthPage from '@/pages/AuthPage'
+import AuthCallback from '@/pages/AuthCallback'
 import WishlistPage from '@/pages/WishlistPage'
 import CustomizePage from '@/pages/CustomizePage'
 import BlogPage from '@/pages/BlogPage'
@@ -71,6 +72,7 @@ export default function App() {
                 <Route path="order-confirmation" element={<OrderConfirmation />} />
                 <Route path="track-order" element={<TrackOrder />} />
                 <Route path="auth" element={<AuthPage />} />
+                <Route path="auth/callback" element={<AuthCallback />} />
                 <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="customize" element={<CustomizePage />} />
                 <Route path="blog" element={<BlogPage />} />

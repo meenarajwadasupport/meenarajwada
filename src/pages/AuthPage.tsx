@@ -18,7 +18,7 @@ type SignupData = z.infer<typeof signupSchema>
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as any)?.from?.pathname ?? '/'
@@ -123,18 +123,9 @@ export default function AuthPage() {
 
             <div className="bg-white border border-[#e8ddd8] rounded-3xl p-7 sm:p-8 shadow-[0_8px_48px_-16px_rgba(125,25,53,0.08)]">
 
-              {/* Google */}
-              <button
-                onClick={signInWithGoogle}
-                className="w-full flex items-center justify-center gap-3 py-3 border border-[#e8ddd8] rounded-xl text-[13px] font-semibold text-[#1a0a08] hover:bg-[#FAF7F5] hover:border-[#c8b8b2] transition-all duration-200 mb-5"
-              >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                Continue with Google
-              </button>
-
               <div className="flex items-center gap-3 mb-5">
                 <div className="flex-1 h-px bg-[#ece3dc]" />
-                <span className="text-[11px] text-[#9a8880] font-medium">or continue with email</span>
+                <span className="text-[11px] text-[#9a8880] font-medium">sign in with email</span>
                 <div className="flex-1 h-px bg-[#ece3dc]" />
               </div>
 

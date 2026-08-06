@@ -5,24 +5,49 @@ import {
   ChevronDown, ChevronRight, Home, Store,
   HelpCircle, Truck, RefreshCw, FileText, Phone, Mail,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useCart } from '@/contexts/CartContext'
 import { useWishlist } from '@/contexts/WishlistContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import CartDrawer from '@/components/common/CartDrawer'
 import SearchModal from '@/components/common/SearchModal'
+
+// ── Fallback nav collections (used if DB table doesn't exist yet) ────────────
+const FALLBACK_COLLECTIONS = [
+  { id: '1', label: 'Bangles',          href: '/category/bangles',         children: [] },
+  { id: '2', label: 'Custom Jewelry',   href: '/category/custom-jewelry',  children: [] },
+  { id: '3', label: 'Bridal',           href: '/category/bridal',          children: [] },
+  { id: '4', label: 'Festive',          href: '/category/festive',         children: [] },
+  { id: '5', label: 'Rajwada Heritage', href: '/category/rajwada-heritage',children: [] },
+]
+
+function useNavCollections() {
+  return useQuery({
+    queryKey: ['nav-collections'],
+    staleTime: 5 * 60 * 1000,   // cache for 5 min
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nav_collections')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order')
+      if (error) return FALLBACK_COLLECTIONS   // table not yet created — use fallback
+      const all = data ?? []
+      // Build tree: top-level items with their children
+      const top = all.filter((i: any) => !i.parent_id).map((i: any) => ({
+        ...i,
+        children: all.filter((c: any) => c.parent_id === i.id),
+      }))
+      return top.length > 0 ? top : FALLBACK_COLLECTIONS
+    },
+  })
+}
 
 const navLinks = [
   { label: 'Shop All',    href: '/shop' },
   { label: 'Customize',  href: '/customize' },
-  {
-    label: 'Collections', href: '#', children: [
-      { label: 'Bangles',          href: '/category/bangles' },
-      { label: 'Custom Jewelry',   href: '/category/custom-jewelry' },
-      { label: 'Bridal',           href: '/category/bridal' },
-      { label: 'Festive',          href: '/category/festive' },
-      { label: 'Rajwada Heritage', href: '/category/rajwada-heritage' },
-    ],
-  },
+  { label: 'Collections', href: '#', isCollections: true },
   { label: 'Blog',       href: '/blog' },
   { label: 'About Us',  href: '/our-story' },
 ]
@@ -43,14 +68,17 @@ export default function Header() {
   const location = useLocation()
   const isHome = location.pathname === '/'
 
-  const [scrolled, setScrolled]       = useState(!isHome)
-  const [cartOpen, setCartOpen]       = useState(false)
-  const [searchOpen, setSearchOpen]   = useState(false)
-  const [mobileOpen, setMobileOpen]   = useState(false)
-  const [colOpen, setColOpen]         = useState(false)   // Collections submenu in mobile drawer
-  const [supOpen, setSupOpen]         = useState(false)   // Support submenu in mobile drawer
+  const { data: navCollections = FALLBACK_COLLECTIONS } = useNavCollections()
 
-  useEffect(() => { setMobileOpen(false); setColOpen(false); setSupOpen(false) }, [location.pathname])
+  const [scrolled, setScrolled]         = useState(!isHome)
+  const [cartOpen, setCartOpen]         = useState(false)
+  const [searchOpen, setSearchOpen]     = useState(false)
+  const [mobileOpen, setMobileOpen]     = useState(false)
+  const [colOpen, setColOpen]           = useState(false)   // Collections submenu in mobile drawer
+  const [subColOpen, setSubColOpen]     = useState<string | null>(null) // which sub-collection is open in mobile
+  const [supOpen, setSupOpen]           = useState(false)   // Support submenu in mobile drawer
+
+  useEffect(() => { setMobileOpen(false); setColOpen(false); setSubColOpen(null); setSupOpen(false) }, [location.pathname])
 
   useEffect(() => {
     if (!isHome) { setScrolled(true); return }
@@ -79,7 +107,7 @@ export default function Header() {
   )
 
   const NavItem = ({ link }: { link: typeof navLinks[0] }) =>
-    (link as any).children ? (
+    (link as any).isCollections ? (
       <div className="relative group">
         <button className={`relative flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 py-6 ${navCls}`}>
           {link.label}
@@ -89,13 +117,37 @@ export default function Header() {
         <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50">
           <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-56 overflow-hidden">
             <p className="px-5 pt-1 pb-2 text-[9px] font-bold tracking-[0.28em] uppercase text-muted-foreground border-b border-border/40 mb-1">Our Collections</p>
-            {(link as any).children.map((child: any) => (
-              <NavLink key={child.href} to={child.href}
-                className="group/item flex items-center justify-between px-5 py-2.5 text-sm text-foreground/70 hover:text-primary hover:bg-primary/[0.04] transition-colors font-medium">
-                {child.label}
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover/item:opacity-60 group-hover/item:translate-x-0 transition-all duration-200" />
-              </NavLink>
-            ))}
+            {navCollections.map((col: any) =>
+              col.children?.length > 0 ? (
+                /* Collection with sub-items → hover flyout to the right */
+                <div key={col.id} className="relative group/sub">
+                  <div className="flex items-center justify-between px-5 py-2.5 text-sm text-foreground/70 group-hover/sub:text-primary group-hover/sub:bg-primary/[0.04] transition-colors font-medium cursor-default select-none">
+                    {col.label}
+                    <ChevronRight className="w-3.5 h-3.5 opacity-50 group-hover/sub:opacity-100 transition-opacity" />
+                  </div>
+                  {/* Sub-panel appears to the right */}
+                  <div className="absolute left-full top-0 ml-1.5 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-50">
+                    <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-52">
+                      <p className="px-4 pt-1 pb-2 text-[9px] font-bold tracking-[0.28em] uppercase text-muted-foreground border-b border-border/40 mb-1">{col.label}</p>
+                      {col.children.map((child: any) => (
+                        <NavLink key={child.id} to={child.href}
+                          className="group/item flex items-center justify-between px-4 py-2.5 text-sm text-foreground/70 hover:text-primary hover:bg-primary/[0.04] transition-colors font-medium">
+                          {child.label}
+                          <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover/item:opacity-60 group-hover/item:translate-x-0 transition-all duration-200" />
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Regular collection — direct link */
+                <NavLink key={col.id} to={col.href}
+                  className="group/item flex items-center justify-between px-5 py-2.5 text-sm text-foreground/70 hover:text-primary hover:bg-primary/[0.04] transition-colors font-medium">
+                  {col.label}
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover/item:opacity-60 group-hover/item:translate-x-0 transition-all duration-200" />
+                </NavLink>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -261,21 +313,48 @@ export default function Header() {
 
           {/* Collections with submenu */}
           <button
-            onClick={() => setColOpen(!colOpen)}
+            onClick={() => { setColOpen(!colOpen); setSubColOpen(null) }}
             className={`w-full flex items-center justify-between px-6 py-[15px] text-[13.5px] font-medium tracking-wide border-b border-border/40 transition-colors ${colOpen ? 'text-primary' : 'text-foreground/80'}`}
           >
             Collections
             <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${colOpen ? 'rotate-90 text-primary' : 'text-foreground/40'}`} />
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${colOpen ? 'max-h-96' : 'max-h-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${colOpen ? 'max-h-[600px]' : 'max-h-0'}`}>
             <div className="bg-background/80 border-b border-border/40">
-              {navLinks.find(l => l.label === 'Collections')?.children?.map((child: any) => (
-                <NavLink key={child.href} to={child.href} onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2.5 pl-9 pr-6 py-3 text-[13px] text-foreground/65 hover:text-primary active:bg-primary/[0.04] transition-colors border-b border-border/25 last:border-0">
-                  <span className="w-1 h-1 rounded-full bg-primary/40 flex-shrink-0" />
-                  {child.label}
-                </NavLink>
-              ))}
+              {navCollections.map((col: any) =>
+                col.children?.length > 0 ? (
+                  /* Collection with sub-items */
+                  <div key={col.id}>
+                    <button
+                      onClick={() => setSubColOpen(subColOpen === col.id ? null : col.id)}
+                      className={`w-full flex items-center gap-2.5 pl-9 pr-5 py-3 text-[13px] transition-colors border-b border-border/25 ${subColOpen === col.id ? 'text-primary font-semibold' : 'text-foreground/65'}`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-primary/40 flex-shrink-0" />
+                      <span className="flex-1 text-left">{col.label}</span>
+                      <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0 ${subColOpen === col.id ? 'rotate-90 text-primary' : 'text-foreground/30'}`} />
+                    </button>
+                    {/* Sub-items */}
+                    <div className={`overflow-hidden transition-all duration-200 ${subColOpen === col.id ? 'max-h-64' : 'max-h-0'}`}>
+                      <div className="bg-white/60">
+                        {col.children.map((child: any) => (
+                          <NavLink key={child.id} to={child.href} onClick={() => setMobileOpen(false)}
+                            className="flex items-center gap-2 pl-14 pr-6 py-2.5 text-[12px] text-foreground/60 hover:text-primary active:bg-primary/[0.04] transition-colors border-b border-border/15 last:border-0">
+                            <span className="w-1 h-1 rounded-full bg-primary/30 flex-shrink-0" />
+                            {child.label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Regular collection */
+                  <NavLink key={col.id} to={col.href} onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2.5 pl-9 pr-6 py-3 text-[13px] text-foreground/65 hover:text-primary active:bg-primary/[0.04] transition-colors border-b border-border/25 last:border-0">
+                    <span className="w-1 h-1 rounded-full bg-primary/40 flex-shrink-0" />
+                    {col.label}
+                  </NavLink>
+                )
+              )}
             </div>
           </div>
 

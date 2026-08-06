@@ -18,17 +18,18 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
-const MAX_MB = 1.5
-const MAX_BYTES = MAX_MB * 1024 * 1024
-
-/** Compress an image file to ≤ maxBytes using canvas */
-async function compressImage(file: File, maxBytes: number): Promise<Blob> {
+/**
+ * Compress image to ≤ MAX_DIM px, ≤ target quality, return as base64 data URL.
+ * Stored directly in DB — no Storage bucket / auth needed.
+ */
+async function compressToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new window.Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
       URL.revokeObjectURL(url)
-      const MAX_DIM = 1200
+      const MAX_DIM = 900          // max px on longest side
+      const TARGET  = 180_000      // ~180 KB base64 target
       let w = img.naturalWidth, h = img.naturalHeight
       if (w > MAX_DIM || h > MAX_DIM) {
         if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM }
@@ -38,14 +39,16 @@ async function compressImage(file: File, maxBytes: number): Promise<Blob> {
       canvas.width = w; canvas.height = h
       canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
 
-      let quality = 0.82
-      const attempt = () => {
-        canvas.toBlob(blob => {
-          if (!blob) { reject(new Error('Canvas toBlob failed')); return }
-          if (blob.size <= maxBytes || quality <= 0.3) { resolve(blob); return }
+      let quality = 0.78
+      const attempt = (): void => {
+        const b64 = canvas.toDataURL('image/jpeg', quality)
+        // b64 length ≈ 4/3 × bytes; keep trying down to quality 0.3
+        if (b64.length <= TARGET * (4 / 3) || quality <= 0.3) {
+          resolve(b64)
+        } else {
           quality -= 0.1
           attempt()
-        }, 'image/jpeg', quality)
+        }
       }
       attempt()
     }
@@ -77,29 +80,15 @@ export default function CustomizePage() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  async function uploadRef(file: File): Promise<string | null> {
-    try {
-      const compressed = await compressImage(file, MAX_BYTES)
-      const ext = 'jpg'
-      const path = `custom-refs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage
-        .from('product-images')
-        .upload(path, compressed, { contentType: 'image/jpeg', upsert: false })
-      if (error) throw error
-      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-      return data.publicUrl
-    } catch (err: any) {
-      console.warn('Reference image upload failed:', err.message)
-      return null
-    }
-  }
-
   async function onSubmit(data: FormData) {
     setUploading(true)
     let refUrl: string | null = null
     if (refImage) {
-      refUrl = await uploadRef(refImage)
-      if (!refUrl) toast.warning('Could not upload reference image — submitting without it')
+      try {
+        refUrl = await compressToBase64(refImage)
+      } catch (err: any) {
+        toast.warning('Could not process reference image — submitting without it')
+      }
     }
     setUploading(false)
 

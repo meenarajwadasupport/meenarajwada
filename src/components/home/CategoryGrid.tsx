@@ -2,7 +2,11 @@ import { Link } from 'react-router-dom'
 import { useCategories } from '@/hooks/useCategories'
 
 export default function CategoryGrid() {
-  const { data: categories = [] } = useCategories()
+  const { data: allCategories = [] } = useCategories()
+  // Show only top-level categories; hide sub-categories and custom-order entry
+  const categories = allCategories.filter(
+    cat => !cat.parent_id && cat.slug !== 'custom-jewelry'
+  )
 
   return (
     <section className="py-14 sm:py-20 bg-gradient-to-b from-white to-[#FAF7F5]">

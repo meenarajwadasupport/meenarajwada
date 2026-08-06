@@ -64,7 +64,7 @@ export default function HeroSlider() {
   const sliderHeight = 'h-[92vh] sm:h-screen min-h-[540px] max-h-[920px]'
 
   return (
-    <section className={`relative overflow-hidden -mt-[76px] ${sliderHeight}`}>
+    <section className={`relative overflow-hidden -mt-16 lg:-mt-[76px] ${sliderHeight}`}>
 
       {/* ── BACKGROUND LAYER — lives OUTSIDE Embla so CSS transforms don't block video ── */}
       {slides.map((slide, idx) => {

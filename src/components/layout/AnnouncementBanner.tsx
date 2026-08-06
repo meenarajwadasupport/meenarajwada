@@ -1,7 +1,11 @@
+import { useLocation } from 'react-router-dom'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 export default function AnnouncementBanner() {
+  const { pathname } = useLocation()
   const { data: settings } = useSiteSettings()
+  // Only show on home page
+  if (pathname !== '/') return null
   if (!settings?.announcement_active) return null
 
   const base = settings.announcement_text

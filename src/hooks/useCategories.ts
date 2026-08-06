@@ -8,7 +8,7 @@ export function useCategories() {
     queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('categories').select('*').eq('is_active', true).order('display_order')
+        .from('categories').select('id,name,slug,image_url,display_order,is_active,parent_id').eq('is_active', true).order('display_order')
       // If DB is unreachable, use fallback entirely
       if (error) return fallbackCategories
       // If DB returns data, use it — merge fallback image_url only for entries missing one

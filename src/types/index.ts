@@ -28,6 +28,7 @@ export interface Category {
   image_url: string
   display_order: number
   is_active: boolean
+  parent_id?: string | null
 }
 
 export interface Order {

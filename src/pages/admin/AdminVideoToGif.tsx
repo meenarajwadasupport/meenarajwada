@@ -27,10 +27,20 @@ function formatBytes(b: number) {
 // Yield to UI between heavy ops
 function yieldToUI() { return new Promise<void>(r => setTimeout(r, 0)) }
 
+// Wait for video metadata to be ready
+function waitForMetadata(video: HTMLVideoElement) {
+  return new Promise<void>((resolve, reject) => {
+    if (video.readyState >= 1) { resolve(); return }
+    const ok = () => { video.removeEventListener('loadedmetadata', ok); video.removeEventListener('error', fail); resolve() }
+    const fail = () => { video.removeEventListener('loadedmetadata', ok); video.removeEventListener('error', fail); reject(new Error('Video failed to load')) }
+    video.addEventListener('loadedmetadata', ok)
+    video.addEventListener('error', fail)
+  })
+}
+
 // Seek video and wait for seeked event
 function seekTo(video: HTMLVideoElement, t: number) {
   return new Promise<void>(r => {
-    if (Math.abs(video.currentTime - t) < 0.01) { r(); return }
     const handler = () => { video.removeEventListener('seeked', handler); r() }
     video.addEventListener('seeked', handler)
     video.currentTime = t
@@ -99,8 +109,11 @@ export default function AdminVideoToGif() {
     try {
       setConverting(true); setProgress(0); setGifUrl(''); setGifBlob(null)
 
-      // Set canvas size (maintain aspect ratio)
-      await seekTo(video, 0) // ensure metadata loaded
+      // Wait for video metadata, then seek to start
+      setProgressLabel('Loading video…')
+      await waitForMetadata(video)
+      await seekTo(video, settings.startTime)
+
       const aspect = video.videoHeight / video.videoWidth || 0.75
       canvas.width = settings.width
       canvas.height = Math.round(settings.width * aspect)

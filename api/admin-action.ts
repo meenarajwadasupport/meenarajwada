@@ -185,6 +185,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true })
   }
 
+  // ── Action: send admin reply to contact message ──────────────
+  if (action === 'send_admin_reply') {
+    const { customer_email, customer_name, original_message, subject, reply_message } = req.body
+    if (!customer_email) return res.status(400).json({ error: 'Missing customer_email' })
+    if (!reply_message)  return res.status(400).json({ error: 'Missing reply_message' })
+
+    const resend = getResend()
+    if (!resend) return res.status(500).json({ error: 'RESEND_API_KEY not set in Vercel environment variables' })
+
+    try {
+      const replySubject = subject ? `Re: ${subject}` : 'Re: Your message to Meena Rajwada'
+      await resend.emails.send({
+        from:    'Meena Rajwada Support <support@meenarajwada.com>',
+        to:      customer_email,
+        replyTo: 'support@meenarajwada.com',
+        subject: replySubject,
+        html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#fdf8f5;font-family:Georgia,serif;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
+    <div style="background:#7D1935;padding:28px 24px;text-align:center;">
+      <p style="margin:0 0 4px;font-size:10px;letter-spacing:4px;color:rgba(255,255,255,0.7);text-transform:uppercase;">Meena Rajwada</p>
+      <h1 style="margin:0;font-size:20px;color:#fff;font-weight:600;">We've replied to your message 💌</h1>
+    </div>
+    <div style="padding:28px 24px;">
+      <p style="margin:0 0 16px;font-size:14px;color:#2a1a10;">Dear <strong>${customer_name ?? 'Valued Customer'}</strong>,</p>
+      <div style="background:#fdf8f5;border-left:3px solid #7D1935;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;">
+        <p style="margin:0 0 6px;font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;">Our reply</p>
+        <p style="margin:0;font-size:14px;color:#2a1a10;line-height:1.7;white-space:pre-wrap;">${reply_message}</p>
+      </div>
+      ${original_message ? `
+      <div style="background:#f9f6f3;border-radius:8px;padding:12px 16px;margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:10px;color:#aaa;letter-spacing:1px;text-transform:uppercase;">Your original message</p>
+        <p style="margin:0;font-size:12px;color:#888;font-style:italic;line-height:1.6;">"${original_message}"</p>
+      </div>` : ''}
+      <p style="margin:0 0 8px;font-size:13px;color:#555;">If you have further questions, simply reply to this email or reach us on WhatsApp.</p>
+      <p style="margin:16px 0 0;font-size:14px;color:#2a1a10;">With love,<br/><strong>Meena Rajwada</strong> 💎</p>
+    </div>
+    <div style="background:#fdf8f5;padding:14px 24px;text-align:center;border-top:1px solid #f0e8e0;">
+      <p style="margin:0;font-size:11px;color:#aaa;">© ${new Date().getFullYear()} Meena Rajwada · support@meenarajwada.com</p>
+    </div>
+  </div>
+</body>
+</html>`,
+      })
+      return res.status(200).json({ success: true })
+    } catch (err: any) {
+      console.error('Admin reply error:', err.message)
+      return res.status(500).json({ error: err.message })
+    }
+  }
+
   // ── Action: send quote email (no Supabase needed — data comes from frontend) ──
   if (action === 'send_quote_email') {
     const { customer_email, customer_name, design_type, description, occasion, quoted_price } = req.body

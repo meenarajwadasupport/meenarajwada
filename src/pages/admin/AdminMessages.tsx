@@ -1,16 +1,24 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { Mail, Trash2, Loader2, Inbox, MailOpen, Phone, ChevronDown, Check } from 'lucide-react'
+import { Mail, Trash2, Loader2, Inbox, MailOpen, Phone, ChevronDown, Check, Send, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function AdminMessages() {
   const qc = useQueryClient()
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [expanded, setExpanded]   = useState<string | null>(null)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyText, setReplyText]   = useState('')
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['admin-messages'],
-    queryFn: async () => { const { data } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false }); return data ?? [] },
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return data ?? []
+    },
   })
 
   const del = useMutation({
@@ -20,12 +28,10 @@ export default function AdminMessages() {
 
   const markRead = useMutation({
     mutationFn: async ({ id, is_read }: { id: string; is_read: boolean }) => {
-      // Use Supabase directly — no server API or env vars needed
       const { error } = await supabase
         .from('contact_messages')
         .update({ is_read: !is_read })
         .eq('id', id)
-      // Non-fatal: if column doesn't exist yet, just log and continue
       if (error) console.warn('mark_read:', error.message)
     },
     onSuccess: () => {
@@ -34,15 +40,49 @@ export default function AdminMessages() {
     },
   })
 
+  const sendReply = useMutation({
+    mutationFn: async ({ message, replyMessage }: { message: any; replyMessage: string }) => {
+      const res = await fetch('/api/admin-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:         'send_admin_reply',
+          customer_email: message.email,
+          customer_name:  message.name,
+          original_message: message.message,
+          subject:        message.subject,
+          reply_message:  replyMessage,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.error) throw new Error(json.error ?? 'Failed to send reply')
+      return json
+    },
+    onSuccess: () => {
+      toast.success('Reply sent from support@meenarajwada.com ✓')
+      setReplyingTo(null)
+      setReplyText('')
+    },
+    onError: (e: any) => toast.error(e.message ?? 'Could not send reply'),
+  })
+
   const unreadCount = (messages as any[]).filter((m: any) => !m.is_read).length
 
   function toggleExpand(m: any) {
     setExpanded(prev => (prev === m.id ? null : m.id))
+    if (replyingTo === m.id) { setReplyingTo(null); setReplyText('') }
     if (!m.is_read) markRead.mutate({ id: m.id, is_read: false })
+  }
+
+  function openReply(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    setReplyingTo(id)
+    setReplyText('')
   }
 
   return (
     <div className="space-y-5">
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -78,7 +118,8 @@ export default function AdminMessages() {
       ) : (
         <div className="space-y-3">
           {(messages as any[]).map((m: any) => {
-            const isOpen = expanded === m.id
+            const isOpen    = expanded === m.id
+            const isReplying = replyingTo === m.id
             return (
               <div
                 key={m.id}
@@ -121,24 +162,65 @@ export default function AdminMessages() {
                       {m.created_at && <span>{new Date(m.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-border/60">
-                      <a href={`mailto:${m.email}${m.subject ? `?subject=Re: ${encodeURIComponent(m.subject)}` : ''}`} className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs">
-                        <Mail className="w-3.5 h-3.5" /> Reply via Email
-                      </a>
-                      <button
-                        onClick={() => markRead.mutate({ id: m.id, is_read: m.is_read })}
-                        disabled={markRead.isPending}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium border border-border rounded-lg hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
-                      >
-                        <Check className="w-3.5 h-3.5" /> Mark as {m.is_read ? 'unread' : 'read'}
-                      </button>
-                      <button
-                        onClick={() => window.confirm(`Delete message from "${m.name}"?`) && del.mutate(m.id)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors ml-auto"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
-                    </div>
+                    {/* ── Inline Reply Form ── */}
+                    {isReplying ? (
+                      <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Reply to {m.name} · from support@meenarajwada.com
+                          </p>
+                          <button
+                            onClick={() => { setReplyingTo(null); setReplyText('') }}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <textarea
+                          rows={5}
+                          value={replyText}
+                          onChange={e => setReplyText(e.target.value)}
+                          placeholder={`Type your reply to ${m.name}…`}
+                          className="w-full border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 bg-white resize-none transition-all"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            disabled={!replyText.trim() || sendReply.isPending}
+                            onClick={() => sendReply.mutate({ message: m, replyMessage: replyText.trim() })}
+                            className="inline-flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                          >
+                            {sendReply.isPending
+                              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending…</>
+                              : <><Send className="w-3.5 h-3.5" /> Send Reply</>
+                            }
+                          </button>
+                          <span className="text-[11px] text-muted-foreground">Sends from support@meenarajwada.com</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-border/60">
+                        <button
+                          onClick={(e) => openReply(e, m.id)}
+                          className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs"
+                        >
+                          <Mail className="w-3.5 h-3.5" /> Reply via Email
+                        </button>
+                        <button
+                          onClick={() => markRead.mutate({ id: m.id, is_read: m.is_read })}
+                          disabled={markRead.isPending}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium border border-border rounded-lg hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Mark as {m.is_read ? 'unread' : 'read'}
+                        </button>
+                        <button
+                          onClick={() => window.confirm(`Delete message from "${m.name}"?`) && del.mutate(m.id)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors ml-auto"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

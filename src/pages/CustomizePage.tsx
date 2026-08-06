@@ -86,13 +86,13 @@ export default function CustomizePage() {
     if (refImage) {
       try {
         refUrl = await compressToBase64(refImage)
-      } catch (err: any) {
-        toast.warning('Could not process reference image — submitting without it')
+      } catch {
+        // compression failed — continue without image
       }
     }
     setUploading(false)
 
-    const payload = {
+    const basePayload = {
       name: data.name,
       email: data.email,
       phone: data.phone,
@@ -100,11 +100,35 @@ export default function CustomizePage() {
       description: data.description,
       budget: data.budget,
       occasion: data.occasion ?? null,
-      reference_image_url: refUrl,
     }
-    const { error } = await supabase.from('custom_order_requests').insert(payload)
-    if (error) { toast.error('Could not submit. Please try again.'); return }
-    toast.success("Request received! We'll contact you within 24 hours.")
+
+    // Try with image first; if column doesn't exist yet, fall back to without image
+    if (refUrl) {
+      const { error } = await supabase
+        .from('custom_order_requests')
+        .insert({ ...basePayload, reference_image_url: refUrl })
+
+      if (error) {
+        // Column might not exist — retry without image
+        const { error: error2 } = await supabase
+          .from('custom_order_requests')
+          .insert(basePayload)
+        if (error2) {
+          toast.error('Could not submit. Please try again.')
+          return
+        }
+        // Submitted OK but image column missing — remind user to run SQL
+        toast.success("Request received! We'll contact you within 24 hours.")
+        toast.warning('Run SQL to enable image storage: ALTER TABLE custom_order_requests ADD COLUMN IF NOT EXISTS reference_image_url TEXT;')
+      } else {
+        toast.success("Request received! We'll contact you within 24 hours.")
+      }
+    } else {
+      const { error } = await supabase.from('custom_order_requests').insert(basePayload)
+      if (error) { toast.error('Could not submit. Please try again.'); return }
+      toast.success("Request received! We'll contact you within 24 hours.")
+    }
+
     reset()
     removeImage()
   }

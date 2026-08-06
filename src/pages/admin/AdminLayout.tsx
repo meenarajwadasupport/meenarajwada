@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, LogOut, Menu, X, Sparkles,
-  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid, Users, Navigation,
+  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid, Users, Navigation, Film,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -20,6 +20,7 @@ const NAV = [
   { to: '/admin/hero-slider',   label: 'Hero Slider',   icon: Image },
   { to: '/admin/collections',   label: 'Collections',   icon: LayoutGrid },
   { to: '/admin/nav-menu',      label: 'Nav Menu',      icon: Navigation },
+  { to: '/admin/video-to-gif',  label: 'Video → GIF',   icon: Film },
   { to: '/admin/testimonials',  label: 'Testimonials',  icon: Star },
   { to: '/admin/promos',        label: 'Promos',        icon: Megaphone },
   { to: '/admin/instagram',     label: 'Instagram',     icon: Instagram },

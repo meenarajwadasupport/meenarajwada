@@ -125,8 +125,8 @@ export default function Header() {
                     {col.label}
                     <ChevronRight className="w-3.5 h-3.5 opacity-50 group-hover/sub:opacity-100 transition-opacity" />
                   </div>
-                  {/* Sub-panel appears to the right */}
-                  <div className="absolute left-full top-0 ml-1.5 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-50">
+                  {/* Sub-panel appears to the right — pl-2 keeps hover area connected (no gap) */}
+                  <div className="absolute left-full top-0 pl-2 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 z-50">
                     <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-52">
                       <p className="px-4 pt-1 pb-2 text-[9px] font-bold tracking-[0.28em] uppercase text-muted-foreground border-b border-border/40 mb-1">{col.label}</p>
                       {col.children.map((child: any) => (

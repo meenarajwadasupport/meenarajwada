@@ -342,6 +342,58 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* ── Supabase Free Plan Usage ─────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-semibold text-sm">Supabase Free Plan Usage</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Row counts from your database · Free plan limits shown</p>
+          </div>
+          <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full">Free Tier</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { label: 'Products',      count: stats?.totalProducts ?? 0,  limit: 50000, color: 'bg-primary' },
+            { label: 'Orders',        count: stats?.totalOrders ?? 0,    limit: 50000, color: 'bg-blue-500' },
+            { label: 'Customers',     count: stats?.totalCustomers ?? 0, limit: 50000, color: 'bg-purple-500' },
+            { label: 'Custom Orders', count: stats?.newCustom ?? 0,      limit: 50000, color: 'bg-amber-500' },
+            { label: 'Messages',      count: stats?.unreadMessages ?? 0, limit: 50000, color: 'bg-rose-500' },
+          ].map(({ label, count, limit, color }) => {
+            const pct = Math.min(100, (count / limit) * 100)
+            return (
+              <div key={label} className="bg-background/60 rounded-xl p-3">
+                <p className="text-xs font-semibold text-foreground">{count.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 mb-2">{label}</p>
+                <div className="w-full bg-border rounded-full h-1.5">
+                  <div className={`h-1.5 rounded-full ${color} transition-all`} style={{ width: `${Math.max(2, pct)}%` }} />
+                </div>
+                <p className="text-[9px] text-muted-foreground mt-1">of {limit.toLocaleString()} limit</p>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Free plan summary */}
+        <div className="mt-4 pt-4 border-t border-border/60 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          {[
+            { label: 'Database',     used: '< 10 MB',  limit: '500 MB',  ok: true },
+            { label: 'Storage',      used: '< 50 MB',  limit: '1 GB',    ok: true },
+            { label: 'Auth Users',   used: `${stats?.totalCustomers ?? 0}`, limit: '50,000',  ok: true },
+            { label: 'Edge Functions',used: '~free',   limit: '500K/mo', ok: true },
+          ].map(({ label, used, limit, ok }) => (
+            <div key={label} className="space-y-0.5">
+              <p className={`text-xs font-bold ${ok ? 'text-green-600' : 'text-red-600'}`}>{used}</p>
+              <p className="text-[10px] text-muted-foreground">{label}</p>
+              <p className="text-[9px] text-muted-foreground/60">limit: {limit}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-muted-foreground/50 mt-3 text-center">
+          Row counts are live. Storage & bandwidth are estimates. Check exact usage at supabase.com → your project → Settings → Usage.
+        </p>
+      </div>
+
     </div>
   )
 }

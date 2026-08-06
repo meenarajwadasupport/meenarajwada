@@ -125,10 +125,22 @@ export default function AdminProducts() {
     queryKey: ['admin-categories'],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('categories').select('id,name,slug').order('display_order')
+      const { data } = await supabase.from('categories').select('id,name,slug,parent_id').order('display_order')
       return data ?? []
     },
   })
+
+  // Build flat ordered list: top-level then their children indented
+  const categoriesFlat = (() => {
+    const all = categories as any[]
+    const top = all.filter(c => !c.parent_id)
+    const result: any[] = []
+    top.forEach(c => {
+      result.push({ ...c, _indent: false })
+      all.filter(ch => ch.parent_id === c.id).forEach(ch => result.push({ ...ch, _indent: true }))
+    })
+    return result
+  })()
 
   function openForm(p?: any) {
     if (p) {
@@ -307,6 +319,12 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         {(categories as any[]).find(c => c.id === p.category_id)?.name ?? p.category_slug ?? '—'}
+                        {(() => {
+                          const cat = (categories as any[]).find(c => c.id === p.category_id)
+                          if (!cat?.parent_id) return null
+                          const parent = (categories as any[]).find(c => c.id === cat.parent_id)
+                          return parent ? <span className="block text-[9px] text-primary/60">{parent.name}</span> : null
+                        })()}
                       </td>
                       <td className="px-4 py-3">
                         <p className="font-bold text-primary">{formatPrice(p.price)}</p>
@@ -434,7 +452,11 @@ export default function AdminProducts() {
                     className={inputCls}
                   >
                     <option value="">— Select Category —</option>
-                    {(categories as any[]).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {categoriesFlat.map((c: any) => (
+                      <option key={c.id} value={c.id}>
+                        {c._indent ? `  ↳ ${c.name}` : c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

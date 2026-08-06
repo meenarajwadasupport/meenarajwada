@@ -52,6 +52,7 @@ import AdminInstagram from '@/pages/admin/AdminInstagram'
 import AdminCollections from '@/pages/admin/AdminCollections'
 import AdminCustomers from '@/pages/admin/AdminCustomers'
 import AdminNavMenu from '@/pages/admin/AdminNavMenu'
+import AdminVideoToGif from '@/pages/admin/AdminVideoToGif'
 
 export default function App() {
   return (
@@ -108,6 +109,7 @@ export default function App() {
                 <Route path="collections" element={<AdminCollections />} />
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="nav-menu" element={<AdminNavMenu />} />
+                <Route path="video-to-gif" element={<AdminVideoToGif />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

@@ -23,10 +23,24 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: auto; }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: 'Jost', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1;
+    line-height: 1.6;
   }
-  h1, h2, h3, h4 { @apply font-serif; }
+  h1, h2, h3, h4, h5 {
+    font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+  }
+  p { line-height: 1.7; }
+
+  /* Ensure buttons and inputs use Jost */
+  button, input, select, textarea {
+    font-family: 'Jost', system-ui, sans-serif;
+  }
 }
 
 @keyframes marquee {

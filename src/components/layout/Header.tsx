@@ -115,7 +115,7 @@ export default function Header() {
           <span className={`absolute bottom-4 left-0 right-3 h-[1.5px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${scrolled ? 'bg-primary' : 'bg-white'}`} />
         </button>
         <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50">
-          <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-56 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] border border-border/60 py-2.5 w-56">
             <p className="px-5 pt-1 pb-2 text-[9px] font-bold tracking-[0.28em] uppercase text-muted-foreground border-b border-border/40 mb-1">Our Collections</p>
             {navCollections.map((col: any) =>
               col.children?.length > 0 ? (

@@ -29,8 +29,9 @@ const config: Config = {
         accent: 'hsl(var(--accent))',
       },
       fontFamily: {
-        serif: ['Playfair Display', 'serif'],
-        sans: ['Lato', 'sans-serif'],
+        serif: ['Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
+        sans: ['Jost', 'system-ui', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
       },
       borderRadius: { DEFAULT: 'var(--radius)' },
       keyframes: {

@@ -8,21 +8,21 @@ export default function AnnouncementBanner() {
     || 'Handmade with Love  ✦  Customized Just for You  ✦  Pan India Shipping  ✦  Free Shipping on Orders ₹999+'
 
   return (
-    <div className="bg-primary overflow-hidden" style={{ height: '30px' }}>
+    <div className="bg-primary overflow-hidden" style={{ height: '36px' }}>
       <div
         className="animate-marquee"
         style={{
           display: 'flex',
           alignItems: 'center',
-          height: '30px',
+          height: '36px',
           width: 'max-content',
           willChange: 'transform',
         }}
       >
-        <span style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
+        <span style={{ fontSize: '11.5px', fontWeight: '600', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
           {base}
         </span>
-        <span aria-hidden style={{ fontSize: '10px', fontWeight: '500', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
+        <span aria-hidden style={{ fontSize: '11.5px', fontWeight: '600', letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap', color: 'white', paddingLeft: '40px', paddingRight: '40px' }}>
           {base}
         </span>
       </div>

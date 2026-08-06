@@ -224,11 +224,11 @@ export default function ProductDetail() {
             {/* Description */}
             {product.description && (
               <div className="mt-7 pt-6 border-t border-border/60">
-                <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-foreground mb-3 flex items-center gap-2">
+                <h3 className="text-[11px] font-bold tracking-[0.25em] uppercase text-primary/80 mb-3 flex items-center gap-2.5">
                   Description
-                  <span className="w-8 h-px bg-primary/30" />
+                  <span className="flex-1 h-px bg-primary/20" />
                 </h3>
-                <p className="text-[13.5px] text-muted-foreground leading-[1.8]">{product.description}</p>
+                <p className="text-[15px] text-foreground/80 leading-[1.9] font-light">{product.description}</p>
               </div>
             )}
 

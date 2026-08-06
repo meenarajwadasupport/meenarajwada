@@ -8,7 +8,7 @@ const POSITIONS = ['bottom-right', 'bottom-left', 'top-right', 'top-left', 'cent
 const DEFAULTS = {
   fps: 8,
   numColors: 128,
-  width: 400,
+  width: 320,
   startTime: 0,
   duration: 4,
   watermark: 'Meena Rajwada',
@@ -138,9 +138,14 @@ export default function AdminVideoToGif() {
       setProgress(72)
       await yieldToUI()
 
-      const blob = encodeAnimatedGIF(frames, {
+      const blob = await encodeAnimatedGIF(frames, {
         loop: 0,
         numColors: settings.numColors,
+        onProgress: (done, total) => {
+          const pct = 72 + Math.round((done / total) * 25)
+          setProgress(pct)
+          setProgressLabel(`Encoding frame ${done} / ${total}`)
+        },
       })
 
       setProgress(98)
@@ -240,7 +245,11 @@ export default function AdminVideoToGif() {
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground block mb-1">Width (px)</label>
                   <select value={settings.width} onChange={e => set('width', Number(e.target.value))} className={inp}>
-                    {[240, 320, 400, 480, 560, 640].map(v => <option key={v} value={v}>{v}px</option>)}
+                    <option value={240}>240px — Fastest / smallest</option>
+                    <option value={320}>320px — Fast (recommended)</option>
+                    <option value={400}>400px — Balanced</option>
+                    <option value={480}>480px — Good quality (slower)</option>
+                    <option value={560}>560px — High quality (slow)</option>
                   </select>
                 </div>
                 <div className="col-span-2">

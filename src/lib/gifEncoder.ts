@@ -147,12 +147,15 @@ function lzwEncode(indices: Uint8Array, minCode: number): Uint8Array {
 
 // ── Main encoder ──────────────────────────────────────────────────────────────
 
-export function encodeAnimatedGIF(
+/** Yield to UI so the browser can repaint between heavy frames */
+function yieldUI() { return new Promise<void>(r => setTimeout(r, 0)) }
+
+export async function encodeAnimatedGIF(
   frames: GifFrame[],
-  options: { loop?: number; numColors?: number } = {}
-): Blob {
+  options: { loop?: number; numColors?: number; onProgress?: (done: number, total: number) => void } = {}
+): Promise<Blob> {
   if (!frames.length) throw new Error('No frames provided')
-  const { loop = 0, numColors = 128 } = options
+  const { loop = 0, numColors = 128, onProgress } = options
   const { width, height } = frames[0].imageData
 
   // Clamp palette size to power of 2 (GIF requirement)
@@ -189,7 +192,8 @@ export function encodeAnimatedGIF(
   // ── Frames
   const minCode = Math.max(2, palBits)
 
-  for (const { imageData, delay } of frames) {
+  for (let fi = 0; fi < frames.length; fi++) {
+    const { imageData, delay } = frames[fi]
     const delayCs = Math.max(2, Math.round(delay / 10)) // ms → centiseconds
 
     // Graphic Control Extension
@@ -203,6 +207,10 @@ export function encodeAnimatedGIF(
     const indices = mapIndices(imageData, lut)
     const compressed = lzwEncode(indices, minCode)
     compressed.forEach(b => out.push(b))
+
+    // Yield every 2 frames so UI stays responsive
+    if (fi % 2 === 1) await yieldUI()
+    onProgress?.(fi + 1, frames.length)
   }
 
   // ── Trailer

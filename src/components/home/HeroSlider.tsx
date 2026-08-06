@@ -238,7 +238,7 @@ export default function HeroSlider() {
         <div className="inline-flex whitespace-nowrap animate-marquee" style={{ willChange: 'transform', height: '30px', lineHeight: '30px' }}>
           {[...Array(3)].map((_, rep) =>
             TICKER_ITEMS.map((msg, i) => (
-              <span key={`${rep}-${i}`} className="text-white/95 text-[9px] font-medium tracking-[0.28em] uppercase whitespace-nowrap mx-10" style={{ lineHeight: '30px' }}>
+              <span key={`${rep}-${i}`} className="text-white/95 text-[11px] font-semibold tracking-[0.22em] uppercase whitespace-nowrap mx-10" style={{ lineHeight: '30px' }}>
                 {msg}
               </span>
             ))

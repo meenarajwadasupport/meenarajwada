@@ -66,10 +66,10 @@ function CollectionCard({ item }: { item: any }) {
           />
         ) : (
           /* Placeholder when no image or video uploaded yet */
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/80 to-primary/60">
             <span className="text-3xl mb-2">💎</span>
-            <p className="text-xs text-primary/60 font-medium text-center px-3">{item.title}</p>
-            <p className="text-[9px] text-primary/40 mt-1">Add photo in Admin → Collections</p>
+            <p className="text-sm text-white/90 font-semibold text-center px-3">{item.title}</p>
+            <p className="text-[9px] text-white/50 mt-1">Add photo in Admin → Collections</p>
           </div>
         )}
 

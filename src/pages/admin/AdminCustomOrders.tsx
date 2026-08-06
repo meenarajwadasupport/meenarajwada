@@ -274,14 +274,27 @@ export default function AdminCustomOrders() {
                     <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{order.description}</p>
                   </div>
 
-                  {/* Reference Images */}
-                  {order.reference_images?.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Reference Images</p>
-                      <div className="flex flex-wrap gap-2">
-                        {order.reference_images.map((url: string, i: number) => (
-                          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                            <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 hover:border-primary transition-all" />
+                  {/* Reference Image — supports both old array field and new single-URL field */}
+                  {(order.reference_image_url || order.reference_images?.length > 0) && (
+                    <div className="bg-white rounded-xl border border-border p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Reference Image from Customer</p>
+                      <div className="flex flex-wrap gap-3">
+                        {/* New single-URL field */}
+                        {order.reference_image_url && (
+                          <a href={order.reference_image_url} target="_blank" rel="noopener noreferrer" className="group block">
+                            <img
+                              src={order.reference_image_url}
+                              alt="Customer reference"
+                              className="w-40 h-40 object-cover rounded-xl border-2 border-border group-hover:border-primary transition-all shadow-sm group-hover:shadow-md"
+                            />
+                            <p className="text-[10px] text-primary mt-1 text-center group-hover:underline">Click to open full size</p>
+                          </a>
+                        )}
+                        {/* Legacy array field */}
+                        {order.reference_images?.map((url: string, i: number) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="group block">
+                            <img src={url} alt="" className="w-40 h-40 object-cover rounded-xl border-2 border-border group-hover:border-primary transition-all shadow-sm" />
+                            <p className="text-[10px] text-primary mt-1 text-center group-hover:underline">Click to open full size</p>
                           </a>
                         ))}
                       </div>

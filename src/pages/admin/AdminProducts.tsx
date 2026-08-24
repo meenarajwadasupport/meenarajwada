@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { Plus, Pencil, Trash2, X, Upload, Search, ImageIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { hasCfWorker, cfUploadImage, cfCreateProduct, cfUpdateProduct, cfDeleteProduct } from '@/lib/cfApi'
 
 // ── Image compression ────────────────────────────────────────────────────────
 async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
@@ -22,21 +23,24 @@ async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Prom
   })
 }
 
-function isBucketMissing(err: any) {
-  return (err?.message ?? '').toLowerCase().includes('bucket') || err?.statusCode === 404
-}
-
 async function uploadProductImage(file: File): Promise<string> {
   const blob = await compressToWebP(file)
-  const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
-  let { data, error } = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
-  if (error && isBucketMissing(error)) {
+
+  // Try R2 via Worker first (zero-egress, faster CDN)
+  if (hasCfWorker()) {
     try {
-      await fetch('/api/setup-storage', { method: 'POST' })
-      const retry = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
-      data = retry.data; error = retry.error
-    } catch { /* ignore */ }
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (token) {
+        const url = await cfUploadImage(blob, 'products', token)
+        return url
+      }
+    } catch { /* fall through to Supabase Storage */ }
   }
+
+  // Fallback: Supabase Storage
+  const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
+  const { data, error } = await supabase.storage.from('products').upload(path, blob, { contentType: 'image/webp', upsert: true })
   if (error) throw new Error(`Upload failed: ${error.message}`)
   return supabase.storage.from('products').getPublicUrl(data!.path).data.publicUrl
 }
@@ -194,21 +198,40 @@ export default function AdminProducts() {
         is_new_arrival: form.is_new_arrival, is_bestseller: form.is_bestseller,
         is_customizable: form.is_customizable, in_hero_slider: form.in_hero_slider,
       }
+
+      // Helper: get session token for Worker auth
+      const getToken = async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        return session?.access_token ?? ''
+      }
+
       if (editing) {
+        // Supabase (source of truth for admin reads)
         const { error } = await supabase.from('products').update(payload).eq('id', editing.id)
         if (error) throw error
-        // Sync hero slider if in_hero_slider changed
+        // Hero slider sync
         if (editing.in_hero_slider !== form.in_hero_slider || form.in_hero_slider) {
           await syncHeroSlide({ ...editing, ...payload }, form.in_hero_slider)
+        }
+        // D1 dual-write (best-effort — don't block on failure)
+        if (hasCfWorker()) {
+          const token = await getToken()
+          cfUpdateProduct(editing.id, payload, token).catch(() => {})
         }
       } else {
         const { data, error } = await supabase.from('products').insert(payload).select().single()
         if (error) throw error
         if (form.in_hero_slider && data) await syncHeroSlide(data, true)
+        // D1 dual-write (best-effort)
+        if (hasCfWorker() && data) {
+          const token = await getToken()
+          cfCreateProduct({ ...payload, id: data.id }, token).catch(() => {})
+        }
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['products'] })
       qc.invalidateQueries({ queryKey: ['hero-slides'] })
       qc.invalidateQueries({ queryKey: ['admin-hero-slides'] })
       toast.success(editing ? 'Product updated ✓' : 'Product added ✓')
@@ -222,8 +245,18 @@ export default function AdminProducts() {
       if (p.in_hero_slider) await syncHeroSlide(p, false)
       const { error } = await supabase.from('products').delete().eq('id', p.id)
       if (error) throw error
+      // D1 dual-delete (best-effort)
+      if (hasCfWorker()) {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token ?? ''
+        cfDeleteProduct(p.id, token).catch(() => {})
+      }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-products'] }); toast.success('Deleted') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['products'] })
+      toast.success('Deleted')
+    },
     onError: () => toast.error('Could not delete'),
   })
 

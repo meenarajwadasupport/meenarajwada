@@ -193,23 +193,27 @@ function adminFetch<T>(path: string, method: string, token: string, body?: unkno
   })
 }
 
-// Image upload to R2
+// Image upload to R2 — accepts a File or pre-compressed Blob
 export async function cfUploadImage(
-  file: File,
+  file: File | Blob,
   folder: string,
   token: string,
+  filename?: string,  // override filename; defaults to UUID
 ): Promise<string> {
-  const ext = file.name.split('.').pop() ?? 'jpg'
+  const ext = filename?.split('.').pop()
+    ?? (file instanceof File ? file.name.split('.').pop() : null)
+    ?? 'webp'
   const key = `${folder}/${crypto.randomUUID()}.${ext}`
+  const contentType = file.type || 'image/webp'
   const res = await fetch(`${BASE}/media/${key}`, {
     method: 'PUT',
     headers: {
-      'Content-Type': file.type || 'image/jpeg',
+      'Content-Type': contentType,
       Authorization: `Bearer ${token}`,
     },
     body: file,
   })
-  if (!res.ok) throw new Error('Image upload failed')
+  if (!res.ok) throw new Error('R2 upload failed')
   const data = await res.json() as { url: string }
   return data.url
 }

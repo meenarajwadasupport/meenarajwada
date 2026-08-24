@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, X, Loader2, ChevronDown, ChevronRight, Eye, EyeOff, Info } from 'lucide-react'
+import { hasCfWorker, cfCreateNavCollection, cfUpdateNavCollection, cfDeleteNavCollection } from '@/lib/cfApi'
 
 const SQL = `-- Run this once in Supabase → SQL Editor
 CREATE TABLE IF NOT EXISTS nav_collections (
@@ -88,6 +89,11 @@ export default function AdminNavMenu() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.label.trim()) throw new Error('Label is required')
@@ -102,9 +108,11 @@ export default function AdminNavMenu() {
       if (editing?.id) {
         const { error } = await supabase.from('nav_collections').update(payload).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) { const token = await getToken(); cfUpdateNavCollection(editing.id, payload, token).catch(() => {}) }
       } else {
-        const { error } = await supabase.from('nav_collections').insert(payload)
+        const { data, error } = await supabase.from('nav_collections').insert(payload).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) { const token = await getToken(); cfCreateNavCollection({ ...payload, id: data.id }, token).catch(() => {}) }
       }
     },
     onSuccess: () => {
@@ -120,6 +128,7 @@ export default function AdminNavMenu() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('nav_collections').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) { const token = await getToken(); cfDeleteNavCollection(id, token).catch(() => {}) }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-nav-collections'] })

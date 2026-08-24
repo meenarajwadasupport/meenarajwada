@@ -4,8 +4,8 @@
  * Handles:
  *   GET  /catalog/*          – public catalog reads from D1 (no Supabase)
  *   GET  /media/:key         – serve images from R2
- *   PUT  /media/:key         – upload image to R2 (admin only)
- *   DELETE /media/:key       – delete image from R2 (admin only)
+ *   PUT  /media/:key         – upload image to R2 (admin)
+ *   DELETE /media/:key       – delete image from R2 (admin)
  *   POST/PUT/DELETE /admin/* – catalog write operations (admin only)
  */
 
@@ -38,9 +38,6 @@ function err(msg: string, status = 400, origin = '*') {
 }
 
 // ─── Admin auth ───────────────────────────────────────────────────────────────
-// Validates that the Authorization header contains a non-empty Bearer token.
-// For full JWT verification add the jose library; this is sufficient for
-// Supabase tokens which are opaque to the client anyway.
 function checkAdmin(request: Request): boolean {
   const auth = request.headers.get('Authorization') ?? ''
   return auth.startsWith('Bearer ') && auth.length > 30
@@ -55,10 +52,9 @@ function parseJSON(val: unknown, fallback: unknown = []) {
 function hydrateProduct(p: Record<string, unknown>) {
   return {
     ...p,
-    images:  parseJSON(p.images, []),
-    colors:  parseJSON(p.colors, []),
-    sizes:   parseJSON(p.sizes, []),
-    tags:    parseJSON(p.tags, []),
+    images: parseJSON(p.images, []),
+    colors: parseJSON(p.colors, []),
+    sizes:  parseJSON(p.sizes,  []),
   }
 }
 
@@ -66,10 +62,9 @@ function hydrateProduct(p: Record<string, unknown>) {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url    = new URL(request.url)
-    const path   = url.pathname          // e.g. /catalog/products
+    const path   = url.pathname
     const method = request.method
 
-    // Determine allowed origin (exact match or fallback to *)
     const reqOrigin = request.headers.get('Origin') ?? ''
     const origin    = reqOrigin.includes('meenarajwada.com') ? reqOrigin
                     : env.ALLOWED_ORIGIN ?? '*'
@@ -79,12 +74,16 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) })
     }
 
+    // ── Health ──────────────────────────────────────────────────────────────
+    if (path === '/' || path === '/health') {
+      return json({ ok: true, service: 'meenarajwada-api', ts: Date.now() }, 200, origin)
+    }
+
     // ── Media (R2) ──────────────────────────────────────────────────────────
     if (path.startsWith('/media/')) {
       const key = decodeURIComponent(path.slice(7))
       if (!key) return err('Missing key', 400, origin)
 
-      // Serve image
       if (method === 'GET') {
         const obj = await env.MEDIA.get(key)
         if (!obj) return err('Not found', 404, origin)
@@ -94,15 +93,14 @@ export default {
         return new Response(obj.body, { headers })
       }
 
-      // Upload image (admin)
       if (method === 'PUT') {
         if (!checkAdmin(request)) return err('Unauthorized', 401, origin)
         const ct = request.headers.get('Content-Type') ?? 'application/octet-stream'
         await env.MEDIA.put(key, request.body, { httpMetadata: { contentType: ct } })
-        return json({ ok: true, url: `${url.origin}/media/${key}`, key }, 200, origin)
+        const workerOrigin = new URL(request.url).origin
+        return json({ ok: true, url: `${workerOrigin}/media/${key}`, key }, 200, origin)
       }
 
-      // Delete image (admin)
       if (method === 'DELETE') {
         if (!checkAdmin(request)) return err('Unauthorized', 401, origin)
         await env.MEDIA.delete(key)
@@ -127,12 +125,12 @@ export default {
       const clauses: string[] = ['is_active = 1']
       const params:  unknown[] = []
 
-      if (slug)       { clauses.push('slug = ?');                     params.push(slug) }
-      if (cat)        { clauses.push('category_slug = ?');            params.push(cat) }
+      if (slug)              { clauses.push('slug = ?');                          params.push(slug) }
+      if (cat)               { clauses.push('category_slug = ?');                 params.push(cat) }
       if (featured   === '1') clauses.push('is_featured = 1')
       if (bestseller === '1') clauses.push('is_bestseller = 1')
       if (sale       === '1') clauses.push('mrp > price AND mrp IS NOT NULL')
-      if (search)     { clauses.push('(name LIKE ? OR description LIKE ?)'); params.push(`%${search}%`, `%${search}%`) }
+      if (search)            { clauses.push('(name LIKE ? OR description LIKE ?)'); params.push(`%${search}%`, `%${search}%`) }
 
       params.push(limit)
       const sql = `SELECT * FROM products WHERE ${clauses.join(' AND ')} ORDER BY created_at DESC LIMIT ?`
@@ -148,21 +146,21 @@ export default {
       return json(hydrateProduct(row as Record<string, unknown>), 200, origin)
     }
 
-    // Categories
+    // Categories — D1 uses display_order
     if (path === '/catalog/categories' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM categories WHERE is_active = 1 ORDER BY sort_order ASC, name ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM categories WHERE is_active = 1 ORDER BY display_order ASC, name ASC').all()
       return json(results, 200, origin)
     }
 
-    // Hero slides
+    // Hero slides — D1 uses display_order, cta_url
     if (path === '/catalog/hero-slides' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM hero_slides WHERE is_active = 1 ORDER BY sort_order ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM hero_slides WHERE is_active = 1 ORDER BY display_order ASC').all()
       return json(results, 200, origin)
     }
 
-    // Featured collections
+    // Featured collections — D1 uses display_order
     if (path === '/catalog/featured-collections' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM featured_collections WHERE is_active = 1 ORDER BY sort_order ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM featured_collections WHERE is_active = 1 ORDER BY display_order ASC').all()
       return json(results, 200, origin)
     }
 
@@ -180,31 +178,32 @@ export default {
       return json(row, 200, origin)
     }
 
-    // FAQs
+    // FAQs — D1 uses display_order
     if (path === '/catalog/faqs' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM faqs WHERE is_active = 1 ORDER BY sort_order ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM faqs WHERE is_active = 1 ORDER BY display_order ASC').all()
       return json(results, 200, origin)
     }
 
-    // Testimonials
+    // Testimonials — D1 uses display_order, content (not review)
     if (path === '/catalog/testimonials' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM testimonials WHERE is_active = 1 ORDER BY sort_order ASC').all()
-      return json(results, 200, origin)
+      const { results } = await env.DB.prepare('SELECT * FROM testimonials WHERE is_active = 1 ORDER BY display_order ASC').all()
+      // Alias content → review for frontend compatibility
+      return json((results as Record<string, unknown>[]).map(r => ({ ...r, review: r.content })), 200, origin)
     }
 
-    // Instagram posts
+    // Instagram posts — D1 uses display_order, post_url
     if (path === '/catalog/instagram-posts' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM instagram_posts WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 12').all()
+      const { results } = await env.DB.prepare('SELECT * FROM instagram_posts WHERE is_active = 1 ORDER BY display_order ASC LIMIT 12').all()
       return json(results, 200, origin)
     }
 
-    // Nav collections
+    // Nav collections — D1 uses display_order, href
     if (path === '/catalog/nav-collections' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM nav_collections ORDER BY sort_order ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM nav_collections WHERE is_active = 1 ORDER BY display_order ASC').all()
       return json(results, 200, origin)
     }
 
-    // Site settings (returns object, not array)
+    // Site settings
     if (path === '/catalog/site-settings' && method === 'GET') {
       const { results } = await env.DB.prepare('SELECT key, value FROM site_settings').all()
       const obj = Object.fromEntries((results as { key: string; value: string }[]).map(r => [r.key, r.value]))
@@ -213,12 +212,11 @@ export default {
 
     // Featured promos
     if (path === '/catalog/featured-promos' && method === 'GET') {
-      const { results } = await env.DB.prepare('SELECT * FROM featured_promos WHERE is_active = 1 ORDER BY sort_order ASC').all()
+      const { results } = await env.DB.prepare('SELECT * FROM featured_promos WHERE is_active = 1 ORDER BY display_order ASC').all()
       return json(results, 200, origin)
     }
 
-    // ── Admin writes (catalog) ──────────────────────────────────────────────
-    // All /admin/* routes require Bearer token
+    // ── Admin writes ────────────────────────────────────────────────────────
     if (path.startsWith('/admin/')) {
       if (!checkAdmin(request)) return err('Unauthorized', 401, origin)
 
@@ -226,27 +224,25 @@ export default {
       try { body = await request.json() } catch { /* DELETE may have no body */ }
 
       // ── Products ──
-      if (path === '/admin/products') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID()
-          const now = new Date().toISOString()
-          await env.DB.prepare(`
-            INSERT INTO products (id,slug,name,description,price,mrp,category_slug,images,colors,sizes,
-              tags,is_active,is_featured,is_bestseller,stock,created_at,updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-          `).bind(
-            id,
-            body.slug, body.name, body.description ?? '',
-            body.price, body.mrp ?? null, body.category_slug ?? null,
-            JSON.stringify(body.images ?? []),
-            JSON.stringify(body.colors ?? []),
-            JSON.stringify(body.sizes ?? []),
-            JSON.stringify(body.tags ?? []),
-            body.is_active ?? 1, body.is_featured ?? 0, body.is_bestseller ?? 0,
-            body.stock ?? 0, now, now,
-          ).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      if (path === '/admin/products' && method === 'POST') {
+        const id = crypto.randomUUID()
+        const now = new Date().toISOString()
+        await env.DB.prepare(`
+          INSERT INTO products (id,slug,name,description,price,mrp,category_slug,images,colors,sizes,
+            material,is_active,is_featured,is_bestseller,stock,created_at,updated_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        `).bind(
+          id,
+          body.slug, body.name, body.description ?? '',
+          body.price, body.mrp ?? null, body.category_slug ?? null,
+          JSON.stringify(body.images ?? []),
+          JSON.stringify(body.colors ?? []),
+          JSON.stringify(body.sizes ?? []),
+          body.material ?? null,
+          body.is_active ?? 1, body.is_featured ?? 0, body.is_bestseller ?? 0,
+          body.stock ?? 0, now, now,
+        ).run()
+        return json({ ok: true, id }, 201, origin)
       }
 
       if (path.startsWith('/admin/products/')) {
@@ -255,7 +251,7 @@ export default {
           const now = new Date().toISOString()
           await env.DB.prepare(`
             UPDATE products SET slug=?,name=?,description=?,price=?,mrp=?,category_slug=?,
-              images=?,colors=?,sizes=?,tags=?,is_active=?,is_featured=?,is_bestseller=?,
+              images=?,colors=?,sizes=?,material=?,is_active=?,is_featured=?,is_bestseller=?,
               stock=?,updated_at=? WHERE id=?
           `).bind(
             body.slug, body.name, body.description ?? '',
@@ -263,7 +259,7 @@ export default {
             JSON.stringify(body.images ?? []),
             JSON.stringify(body.colors ?? []),
             JSON.stringify(body.sizes ?? []),
-            JSON.stringify(body.tags ?? []),
+            body.material ?? null,
             body.is_active ?? 1, body.is_featured ?? 0, body.is_bestseller ?? 0,
             body.stock ?? 0, now, id,
           ).run()
@@ -275,26 +271,25 @@ export default {
         }
       }
 
-      // ── Categories ──
-      if (path === '/admin/categories') {
-        if (method === 'POST') {
-          const id  = crypto.randomUUID()
-          const now = new Date().toISOString()
-          await env.DB.prepare(`
-            INSERT INTO categories (id,slug,name,description,image_url,is_active,sort_order,created_at,updated_at)
-            VALUES (?,?,?,?,?,?,?,?,?)
-          `).bind(id, body.slug, body.name, body.description ?? '', body.image_url ?? null,
-            body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Categories — D1: id,name,slug,image_url,display_order,is_active,parent_id ──
+      if (path === '/admin/categories' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO categories (id,slug,name,image_url,is_active,display_order,parent_id)
+          VALUES (?,?,?,?,?,?,?)
+        `).bind(id, body.slug, body.name, body.image_url ?? null,
+          body.is_active ?? 1, body.display_order ?? body.sort_order ?? 0,
+          body.parent_id ?? null).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/categories/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE categories SET slug=?,name=?,description=?,image_url=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.slug, body.name, body.description ?? '', body.image_url ?? null,
-              body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE categories SET slug=?,name=?,image_url=?,is_active=?,display_order=?,parent_id=? WHERE id=?
+          `).bind(body.slug, body.name, body.image_url ?? null,
+            body.is_active ?? 1, body.display_order ?? body.sort_order ?? 0,
+            body.parent_id ?? null, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -303,21 +298,29 @@ export default {
         }
       }
 
-      // ── Hero Slides ──
-      if (path === '/admin/hero-slides') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO hero_slides (id,title,subtitle,image_url,cta_text,cta_link,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-            .bind(id, body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.cta_text ?? '', body.cta_link ?? '', body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Hero Slides — D1: id,title,subtitle,image_url,video_url,cta_text,cta_url,display_order,is_active ──
+      if (path === '/admin/hero-slides' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO hero_slides (id,title,subtitle,image_url,video_url,cta_text,cta_url,is_active,display_order)
+          VALUES (?,?,?,?,?,?,?,?,?)
+        `).bind(id, body.title ?? '', body.subtitle ?? '', body.image_url ?? '',
+          body.video_url ?? null, body.cta_text ?? '',
+          body.cta_url ?? body.cta_link ?? '',
+          body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/hero-slides/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE hero_slides SET title=?,subtitle=?,image_url=?,cta_text=?,cta_link=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.cta_text ?? '', body.cta_link ?? '', body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE hero_slides SET title=?,subtitle=?,image_url=?,video_url=?,cta_text=?,cta_url=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.title ?? '', body.subtitle ?? '', body.image_url ?? '',
+            body.video_url ?? null, body.cta_text ?? '',
+            body.cta_url ?? body.cta_link ?? '',
+            body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -326,21 +329,27 @@ export default {
         }
       }
 
-      // ── Featured Collections ──
-      if (path === '/admin/featured-collections') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO featured_collections (id,title,subtitle,image_url,link,badge,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-            .bind(id, body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.link ?? '', body.badge ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Featured Collections — D1: id,label,title,price,url,image_url,video_url,display_order,is_active ──
+      if (path === '/admin/featured-collections' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO featured_collections (id,label,title,price,url,image_url,video_url,is_active,display_order)
+          VALUES (?,?,?,?,?,?,?,?,?)
+        `).bind(id, body.label ?? '', body.title ?? '', body.price ?? null,
+          body.url ?? body.link ?? '', body.image_url ?? '',
+          body.video_url ?? null, body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/featured-collections/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE featured_collections SET title=?,subtitle=?,image_url=?,link=?,badge=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.link ?? '', body.badge ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE featured_collections SET label=?,title=?,price=?,url=?,image_url=?,video_url=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.label ?? '', body.title ?? '', body.price ?? null,
+            body.url ?? body.link ?? '', body.image_url ?? '',
+            body.video_url ?? null, body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -350,22 +359,26 @@ export default {
       }
 
       // ── Blog Posts ──
-      if (path === '/admin/blog-posts') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO blog_posts (id,slug,title,excerpt,content,cover_image_url,author,status,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
-            .bind(id, body.slug, body.title, body.excerpt ?? '', body.content ?? '', body.cover_image_url ?? null, body.author ?? 'Admin',
-              body.status ?? 'draft', body.status === 'published' ? now : null, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      if (path === '/admin/blog-posts' && method === 'POST') {
+        const id = crypto.randomUUID(); const now = new Date().toISOString()
+        await env.DB.prepare(`
+          INSERT INTO blog_posts (id,slug,title,excerpt,content,cover_image_url,author,status,published_at,created_at,updated_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        `).bind(id, body.slug, body.title, body.excerpt ?? '', body.content ?? '',
+          body.cover_image_url ?? null, body.author ?? 'Admin',
+          body.status ?? 'draft', body.status === 'published' ? now : null, now, now).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/blog-posts/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
           const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE blog_posts SET slug=?,title=?,excerpt=?,content=?,cover_image_url=?,author=?,status=?,published_at=?,updated_at=? WHERE id=?`)
-            .bind(body.slug, body.title, body.excerpt ?? '', body.content ?? '', body.cover_image_url ?? null, body.author ?? 'Admin',
-              body.status ?? 'draft', body.status === 'published' ? (body.published_at ?? now) : null, now, id).run()
+          await env.DB.prepare(`
+            UPDATE blog_posts SET slug=?,title=?,excerpt=?,content=?,cover_image_url=?,author=?,status=?,published_at=?,updated_at=? WHERE id=?
+          `).bind(body.slug, body.title, body.excerpt ?? '', body.content ?? '',
+            body.cover_image_url ?? null, body.author ?? 'Admin',
+            body.status ?? 'draft', body.status === 'published' ? (body.published_at ?? now) : null,
+            now, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -374,21 +387,24 @@ export default {
         }
       }
 
-      // ── FAQs ──
-      if (path === '/admin/faqs') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO faqs (id,question,answer,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?)`)
-            .bind(id, body.question, body.answer, body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── FAQs — D1: id,question,answer,is_active,display_order ──
+      if (path === '/admin/faqs' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO faqs (id,question,answer,is_active,display_order) VALUES (?,?,?,?,?)
+        `).bind(id, body.question, body.answer,
+          body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/faqs/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE faqs SET question=?,answer=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.question, body.answer, body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE faqs SET question=?,answer=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.question, body.answer,
+            body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -397,21 +413,27 @@ export default {
         }
       }
 
-      // ── Testimonials ──
-      if (path === '/admin/testimonials') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO testimonials (id,name,location,rating,review,avatar_url,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-            .bind(id, body.name, body.location ?? '', body.rating ?? 5, body.review, body.avatar_url ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Testimonials — D1: id,name,location,rating,content,avatar_url,is_active,display_order ──
+      if (path === '/admin/testimonials' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO testimonials (id,name,location,rating,content,avatar_url,is_active,display_order)
+          VALUES (?,?,?,?,?,?,?,?)
+        `).bind(id, body.name, body.location ?? '', body.rating ?? 5,
+          body.content ?? body.review,
+          body.avatar_url ?? null, body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/testimonials/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE testimonials SET name=?,location=?,rating=?,review=?,avatar_url=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.name, body.location ?? '', body.rating ?? 5, body.review, body.avatar_url ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE testimonials SET name=?,location=?,rating=?,content=?,avatar_url=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.name, body.location ?? '', body.rating ?? 5,
+            body.content ?? body.review,
+            body.avatar_url ?? null, body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -420,21 +442,27 @@ export default {
         }
       }
 
-      // ── Instagram Posts ──
-      if (path === '/admin/instagram-posts') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO instagram_posts (id,image_url,link,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?)`)
-            .bind(id, body.image_url, body.link ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Instagram Posts — D1: id,image_url,caption,post_url,is_active,display_order ──
+      if (path === '/admin/instagram-posts' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO instagram_posts (id,image_url,caption,post_url,is_active,display_order)
+          VALUES (?,?,?,?,?,?)
+        `).bind(id, body.image_url, body.caption ?? null,
+          body.post_url ?? body.link ?? null,
+          body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/instagram-posts/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE instagram_posts SET image_url=?,link=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.image_url, body.link ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE instagram_posts SET image_url=?,caption=?,post_url=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.image_url, body.caption ?? null,
+            body.post_url ?? body.link ?? null,
+            body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -443,21 +471,27 @@ export default {
         }
       }
 
-      // ── Nav Collections ──
-      if (path === '/admin/nav-collections') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO nav_collections (id,label,slug,image_url,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?)`)
-            .bind(id, body.label, body.slug, body.image_url ?? null, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      // ── Nav Collections — D1: id,label,href,parent_id,display_order,is_active ──
+      if (path === '/admin/nav-collections' && method === 'POST') {
+        const id = crypto.randomUUID()
+        await env.DB.prepare(`
+          INSERT INTO nav_collections (id,label,href,parent_id,is_active,display_order)
+          VALUES (?,?,?,?,?,?)
+        `).bind(id, body.label,
+          body.href ?? body.slug ?? '',
+          body.parent_id ?? null, body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/nav-collections/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
-          const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE nav_collections SET label=?,slug=?,image_url=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.label, body.slug, body.image_url ?? null, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE nav_collections SET label=?,href=?,parent_id=?,is_active=?,display_order=? WHERE id=?
+          `).bind(body.label,
+            body.href ?? body.slug ?? '',
+            body.parent_id ?? null, body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -471,27 +505,34 @@ export default {
         const entries = Object.entries(body as Record<string, string>)
         const now = new Date().toISOString()
         for (const [key, value] of entries) {
-          await env.DB.prepare(`INSERT INTO site_settings (key, value, updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at`)
-            .bind(key, String(value), now).run()
+          await env.DB.prepare(`
+            INSERT INTO site_settings (key, value, updated_at) VALUES (?,?,?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
+          `).bind(key, String(value), now).run()
         }
         return json({ ok: true }, 200, origin)
       }
 
       // ── Featured Promos ──
-      if (path === '/admin/featured-promos') {
-        if (method === 'POST') {
-          const id = crypto.randomUUID(); const now = new Date().toISOString()
-          await env.DB.prepare(`INSERT INTO featured_promos (id,title,subtitle,image_url,link,badge,is_active,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-            .bind(id, body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.link ?? '', body.badge ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, now).run()
-          return json({ ok: true, id }, 201, origin)
-        }
+      if (path === '/admin/featured-promos' && method === 'POST') {
+        const id = crypto.randomUUID(); const now = new Date().toISOString()
+        await env.DB.prepare(`
+          INSERT INTO featured_promos (id,title,subtitle,image_url,link,badge,is_active,display_order,created_at,updated_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?)
+        `).bind(id, body.title ?? '', body.subtitle ?? '', body.image_url ?? '',
+          body.link ?? '', body.badge ?? null, body.is_active ?? 1,
+          body.display_order ?? body.sort_order ?? 0, now, now).run()
+        return json({ ok: true, id }, 201, origin)
       }
       if (path.startsWith('/admin/featured-promos/')) {
         const id = path.split('/')[3]
         if (method === 'PUT') {
           const now = new Date().toISOString()
-          await env.DB.prepare(`UPDATE featured_promos SET title=?,subtitle=?,image_url=?,link=?,badge=?,is_active=?,sort_order=?,updated_at=? WHERE id=?`)
-            .bind(body.title ?? '', body.subtitle ?? '', body.image_url ?? '', body.link ?? '', body.badge ?? null, body.is_active ?? 1, body.sort_order ?? 0, now, id).run()
+          await env.DB.prepare(`
+            UPDATE featured_promos SET title=?,subtitle=?,image_url=?,link=?,badge=?,is_active=?,display_order=?,updated_at=? WHERE id=?
+          `).bind(body.title ?? '', body.subtitle ?? '', body.image_url ?? '',
+            body.link ?? '', body.badge ?? null, body.is_active ?? 1,
+            body.display_order ?? body.sort_order ?? 0, now, id).run()
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
@@ -501,11 +542,6 @@ export default {
       }
 
       return err('Not found', 404, origin)
-    }
-
-    // Health check
-    if (path === '/' || path === '/health') {
-      return json({ ok: true, service: 'meenarajwada-api', ts: Date.now() }, 200, origin)
     }
 
     return err('Not found', 404, origin)

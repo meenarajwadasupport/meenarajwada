@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Loader2, FolderOpen, ImageOff } from 'lucide-react'
 import { toast } from 'sonner'
 import ImageUpload from '@/components/admin/ImageUpload'
+import { hasCfWorker, cfCreateCategory, cfUpdateCategory, cfDeleteCategory } from '@/lib/cfApi'
 
 export default function AdminCategories() {
   const qc = useQueryClient()
@@ -26,6 +27,11 @@ export default function AdminCategories() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error('Category name is required')
@@ -33,9 +39,17 @@ export default function AdminCategories() {
       if (editing) {
         const { error } = await supabase.from('categories').update(p).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) {
+          const token = await getToken()
+          cfUpdateCategory(editing.id, p, token).catch(() => {})
+        }
       } else {
-        const { error } = await supabase.from('categories').insert(p)
+        const { data, error } = await supabase.from('categories').insert(p).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) {
+          const token = await getToken()
+          cfCreateCategory({ ...p, id: data.id }, token).catch(() => {})
+        }
       }
     },
     onSuccess: () => {
@@ -51,6 +65,10 @@ export default function AdminCategories() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('categories').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) {
+        const token = await getToken()
+        cfDeleteCategory(id, token).catch(() => {})
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-categories'] })

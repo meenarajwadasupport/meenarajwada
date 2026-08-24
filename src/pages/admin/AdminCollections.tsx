@@ -5,6 +5,7 @@ import { Pencil, X, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, Info } from 'lucid
 import { toast } from 'sonner'
 import ImageUpload from '@/components/admin/ImageUpload'
 import VideoUpload from '@/components/admin/VideoUpload'
+import { hasCfWorker, cfCreateFeaturedCollection, cfUpdateFeaturedCollection, cfDeleteFeaturedCollection } from '@/lib/cfApi'
 
 // Fallback seeded data shown if DB table doesn't exist yet
 const FALLBACK = [
@@ -63,6 +64,11 @@ export default function AdminCollections() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.title.trim()) throw new Error('Title is required')
@@ -80,9 +86,11 @@ export default function AdminCollections() {
       if (editing?.id) {
         const { error } = await supabase.from('featured_collections').update(payload).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) { const token = await getToken(); cfUpdateFeaturedCollection(editing.id, payload, token).catch(() => {}) }
       } else {
-        const { error } = await supabase.from('featured_collections').insert(payload)
+        const { data, error } = await supabase.from('featured_collections').insert(payload).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) { const token = await getToken(); cfCreateFeaturedCollection({ ...payload, id: data.id }, token).catch(() => {}) }
       }
     },
     onSuccess: () => {
@@ -98,6 +106,7 @@ export default function AdminCollections() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('featured_collections').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) { const token = await getToken(); cfDeleteFeaturedCollection(id, token).catch(() => {}) }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-collections'] })

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
+import { hasCfWorker, cfCreateFaq, cfUpdateFaq, cfDeleteFaq } from '@/lib/cfApi'
 
 const BLANK = { question: '', answer: '', display_order: '1', is_active: true }
 
@@ -32,13 +33,23 @@ export default function AdminFaqs() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.question.trim()) throw new Error('Question is required')
       if (!form.answer.trim()) throw new Error('Answer is required')
       const payload = { question: form.question.trim(), answer: form.answer.trim(), display_order: Number(form.display_order), is_active: form.is_active }
-      if (editing) await supabase.from('faqs').update(payload).eq('id', editing.id)
-      else await supabase.from('faqs').insert(payload)
+      if (editing) {
+        await supabase.from('faqs').update(payload).eq('id', editing.id)
+        if (hasCfWorker()) { const token = await getToken(); cfUpdateFaq(editing.id, payload, token).catch(() => {}) }
+      } else {
+        const { data } = await supabase.from('faqs').insert(payload).select().single()
+        if (hasCfWorker() && data) { const token = await getToken(); cfCreateFaq({ ...payload, id: data.id }, token).catch(() => {}) }
+      }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-faqs'] }); toast.success('Saved'); setShowForm(false) },
     onError: (e: any) => toast.error(e.message),
@@ -48,6 +59,7 @@ export default function AdminFaqs() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('faqs').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) { const token = await getToken(); cfDeleteFaq(id, token).catch(() => {}) }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-faqs'] }); toast.success('Deleted') },
     onError: (e: any) => toast.error(e.message ?? 'Could not delete'),

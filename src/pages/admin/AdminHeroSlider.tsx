@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Loader2, Eye, EyeOff } fro
 import { toast } from 'sonner'
 import ImageUpload from '@/components/admin/ImageUpload'
 import VideoUpload from '@/components/admin/VideoUpload'
+import { hasCfWorker, cfCreateHeroSlide, cfUpdateHeroSlide, cfDeleteHeroSlide } from '@/lib/cfApi'
 
 const BLANK = { title: '', subtitle: '', image_url: '', video_url: '', cta_text: 'Shop Now', cta_url: '/shop', display_order: '1', is_active: true }
 
@@ -41,6 +42,11 @@ export default function AdminHeroSlider() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.title.trim()) throw new Error('Title is required')
@@ -55,9 +61,17 @@ export default function AdminHeroSlider() {
       if (editing) {
         const { error } = await supabase.from('hero_slides').update(payload).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) {
+          const token = await getToken()
+          cfUpdateHeroSlide(editing.id, payload, token).catch(() => {})
+        }
       } else {
-        const { error } = await supabase.from('hero_slides').insert(payload)
+        const { data, error } = await supabase.from('hero_slides').insert(payload).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) {
+          const token = await getToken()
+          cfCreateHeroSlide({ ...payload, id: data.id }, token).catch(() => {})
+        }
       }
     },
     onSuccess: () => {
@@ -73,6 +87,10 @@ export default function AdminHeroSlider() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('hero_slides').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) {
+        const token = await getToken()
+        cfDeleteHeroSlide(id, token).catch(() => {})
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-hero-slides'] })

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, Star, Loader2, Quote, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 import ImageUpload from '@/components/admin/ImageUpload'
+import { hasCfWorker, cfCreateTestimonial, cfUpdateTestimonial, cfDeleteTestimonial } from '@/lib/cfApi'
 
 export default function AdminTestimonials() {
   const qc = useQueryClient()
@@ -22,15 +23,30 @@ export default function AdminTestimonials() {
     setShowForm(true)
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       const p = { customer_name: form.customer_name, location: form.location, review: form.review, rating: Number(form.rating), avatar: form.avatar, is_active: form.is_active, display_order: Number(form.display_order) }
+      // D1 maps column names differently (name/content/avatar_url)
+      const d1p = { name: form.customer_name, location: form.location, content: form.review, rating: Number(form.rating), avatar_url: form.avatar || null, is_active: form.is_active, display_order: Number(form.display_order) }
       if (editing) {
         const { error } = await supabase.from('testimonials').update(p).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) {
+          const token = await getToken()
+          cfUpdateTestimonial(editing.id, d1p, token).catch(() => {})
+        }
       } else {
-        const { error } = await supabase.from('testimonials').insert(p)
+        const { data, error } = await supabase.from('testimonials').insert(p).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) {
+          const token = await getToken()
+          cfCreateTestimonial({ ...d1p, id: data.id }, token).catch(() => {})
+        }
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-testimonials'] }); toast.success('Saved'); setShowForm(false) },
@@ -41,6 +57,10 @@ export default function AdminTestimonials() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('testimonials').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) {
+        const token = await getToken()
+        cfDeleteTestimonial(id, token).catch(() => {})
+      }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-testimonials'] }); toast.success('Deleted') },
     onError: (e: any) => toast.error(e.message ?? 'Could not delete'),

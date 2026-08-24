@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Instagram, ExternalLink, Loader2, Image } from 'lucide-react'
 import { toast } from 'sonner'
+import { hasCfWorker, cfCreateInstagramPost, cfUpdateInstagramPost, cfDeleteInstagramPost } from '@/lib/cfApi'
 
 const BLANK = { reel_id: '', caption: '', display_order: '1', is_active: true }
 
@@ -59,6 +60,11 @@ export default function AdminInstagram() {
     }
   }
 
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       const id = form.reel_id.trim().replace(/.*\/reel\//i, '').replace(/\//g, '')
@@ -83,12 +89,22 @@ export default function AdminInstagram() {
         display_order: Number(form.display_order),
         is_active: form.is_active,
       }
+      // D1 schema uses image_url + post_url (no reel_id)
+      const d1payload = {
+        image_url: thumbnail_url || '',
+        post_url: `https://www.instagram.com/reel/${id}/`,
+        caption: form.caption.trim(),
+        display_order: Number(form.display_order),
+        is_active: form.is_active,
+      }
       if (editing) {
         const { error } = await supabase.from('instagram_posts').update(payload).eq('id', editing.id)
         if (error) throw new Error(error.message)
+        if (hasCfWorker()) { const token = await getToken(); cfUpdateInstagramPost(editing.id, d1payload, token).catch(() => {}) }
       } else {
-        const { error } = await supabase.from('instagram_posts').insert(payload)
+        const { data, error } = await supabase.from('instagram_posts').insert(payload).select().single()
         if (error) throw new Error(error.message)
+        if (hasCfWorker() && data) { const token = await getToken(); cfCreateInstagramPost({ ...d1payload, id: data.id }, token).catch(() => {}) }
       }
     },
     onSuccess: () => {
@@ -104,6 +120,7 @@ export default function AdminInstagram() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('instagram_posts').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      if (hasCfWorker()) { const token = await getToken(); cfDeleteInstagramPost(id, token).catch(() => {}) }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-instagram'] })

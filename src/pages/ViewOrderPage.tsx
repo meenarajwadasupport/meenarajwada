@@ -39,7 +39,7 @@ function ReturnRequestForm({ orderNumber, customerName, customerEmail }: { order
     setSubmitting(false)
     if (error) { toast.error('Could not submit. Please try again.'); return }
     setSubmitted(true)
-    toast.success('Return request submitted! We'll contact you within 24 hours.')
+    toast.success("Return request submitted! We'll contact you within 24 hours.")
   }
 
   if (submitted) return (

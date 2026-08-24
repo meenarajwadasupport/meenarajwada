@@ -193,6 +193,20 @@ function adminFetch<T>(path: string, method: string, token: string, body?: unkno
   })
 }
 
+// Delete an image from R2 by its full Worker URL or just the key
+export async function cfDeleteImage(urlOrKey: string, token: string): Promise<void> {
+  // Accept either https://.../media/products/xyz.webp  OR  products/xyz.webp
+  const key = urlOrKey.startsWith('http')
+    ? decodeURIComponent(new URL(urlOrKey).pathname.replace(/^\/media\//, ''))
+    : urlOrKey
+  if (!key) return
+  const res = await fetch(`${BASE}/media/${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok && res.status !== 404) throw new Error(`R2 delete failed: ${res.status}`)
+}
+
 // Image upload to R2 — accepts a File or pre-compressed Blob
 export async function cfUploadImage(
   file: File | Blob,

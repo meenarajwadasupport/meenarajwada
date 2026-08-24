@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { Plus, Pencil, Trash2, X, Upload, Search, ImageIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { hasCfWorker, cfUploadImage, cfCreateProduct, cfUpdateProduct, cfDeleteProduct } from '@/lib/cfApi'
+import { hasCfWorker, cfUploadImage, cfDeleteImage, cfCreateProduct, cfUpdateProduct, cfDeleteProduct } from '@/lib/cfApi'
 
 // ── Image compression ────────────────────────────────────────────────────────
 async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
@@ -178,6 +178,12 @@ export default function AdminProducts() {
     if (urls.length) toast.success(`${urls.length} image(s) uploaded`)
   }
 
+  // Shared helper — gets the current Supabase JWT for Worker auth
+  const getToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token ?? ''
+  }
+
   const saveProduct = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error('Product name is required')
@@ -197,12 +203,6 @@ export default function AdminProducts() {
         is_active: form.is_active, is_featured: form.is_featured,
         is_new_arrival: form.is_new_arrival, is_bestseller: form.is_bestseller,
         is_customizable: form.is_customizable, in_hero_slider: form.in_hero_slider,
-      }
-
-      // Helper: get session token for Worker auth
-      const getToken = async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        return session?.access_token ?? ''
       }
 
       if (editing) {
@@ -243,13 +243,29 @@ export default function AdminProducts() {
   const deleteProduct = useMutation({
     mutationFn: async (p: any) => {
       if (p.in_hero_slider) await syncHeroSlide(p, false)
+
+      // Delete from Supabase first
       const { error } = await supabase.from('products').delete().eq('id', p.id)
       if (error) throw error
-      // D1 dual-delete (best-effort)
+
       if (hasCfWorker()) {
-        const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token ?? ''
-        cfDeleteProduct(p.id, token).catch(() => {})
+        const token = await getToken()
+
+        // Delete from D1 — await so we know if it fails
+        try {
+          await cfDeleteProduct(p.id, token)
+        } catch (e: any) {
+          console.warn('D1 product delete failed:', e?.message)
+          toast.error('Deleted from admin, but Cloudflare sync failed — please redeploy Worker')
+        }
+
+        // Delete any R2 images (only the ones hosted on the Worker, not Supabase Storage URLs)
+        const r2Images: string[] = (p.images ?? []).filter(
+          (url: string) => url.includes('workers.dev/media') || url.includes('meenarajwada.com/media')
+        )
+        for (const url of r2Images) {
+          cfDeleteImage(url, token).catch(() => {})
+        }
       }
     },
     onSuccess: () => {
@@ -257,7 +273,7 @@ export default function AdminProducts() {
       qc.invalidateQueries({ queryKey: ['products'] })
       toast.success('Deleted')
     },
-    onError: () => toast.error('Could not delete'),
+    onError: (e: any) => toast.error(e.message ?? 'Could not delete'),
   })
 
   const filtered = (products as any[]).filter(p =>

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { cfGetSiteSettings, hasCfWorker } from '@/lib/cfApi'
 
 export interface SiteSettings {
   announcement_text:   string
@@ -30,16 +31,25 @@ const defaultSettings: SiteSettings = {
 export function useSiteSettings() {
   return useQuery({
     queryKey: ['site-settings'],
-    queryFn: async () => {
-      // Use limit(1) to safely handle tables with 0 or multiple rows
-      const { data: rows, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .limit(1)
+    staleTime: 10 * 60 * 1000,
+    queryFn: async (): Promise<SiteSettings> => {
+      if (hasCfWorker()) {
+        try {
+          const data = await cfGetSiteSettings()
+          if (Object.keys(data).length) {
+            return {
+              ...defaultSettings,
+              ...data,
+              announcement_active: data.announcement_active === 'true' || (data.announcement_active as unknown) === true,
+            }
+          }
+        } catch { /* fall through */ }
+      }
+
+      const { data: rows, error } = await supabase.from('site_settings').select('*').limit(1)
       if (error || !rows?.length) return defaultSettings
       return { ...defaultSettings, ...rows[0] } as SiteSettings
     },
     placeholderData: defaultSettings,
-    staleTime: 10 * 60 * 1000,
   })
 }

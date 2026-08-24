@@ -266,6 +266,23 @@ export default {
           return json({ ok: true }, 200, origin)
         }
         if (method === 'DELETE') {
+          // Fetch the product's images before deleting so we can clean up R2
+          const existing = await env.DB.prepare('SELECT images FROM products WHERE id=?').bind(id).first()
+          if (existing?.images) {
+            let urls: string[] = []
+            try { urls = JSON.parse(existing.images as string) } catch { /* ignore */ }
+            // Only delete images that live in this R2 bucket (Worker-served URLs)
+            const r2Keys = urls
+              .filter((u: string) => u.includes('/media/'))
+              .map((u: string) => {
+                try { return decodeURIComponent(new URL(u).pathname.replace(/^\/media\//, '')) }
+                catch { return u.replace(/.*\/media\//, '') }
+              })
+              .filter(Boolean)
+            for (const key of r2Keys) {
+              try { await env.MEDIA.delete(key) } catch { /* best-effort */ }
+            }
+          }
           await env.DB.prepare('DELETE FROM products WHERE id=?').bind(id).run()
           return json({ ok: true }, 200, origin)
         }

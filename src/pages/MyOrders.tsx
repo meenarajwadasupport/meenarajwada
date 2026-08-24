@@ -53,7 +53,7 @@ export default function MyOrders() {
                 )}
                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
                   <p className="font-bold text-primary">{formatPrice(order.total_amount)}</p>
-                  <Link to={`/order-confirmation?order_id=${order.id}`} className="text-sm text-primary hover:underline">View Details →</Link>
+                  <Link to={`/my-orders/${order.id}`} className="text-sm text-primary hover:underline">View Details →</Link>
                 </div>
               </div>
             ))}

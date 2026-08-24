@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingBag, Tag, Star, BookOpen,
   Image, Settings, MessageSquare, LogOut, Menu, X, Sparkles,
-  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid, Users, Navigation, Film,
+  Home, ChevronLeft, HelpCircle, Megaphone, Instagram, ArrowLeft, LayoutGrid, Users, Navigation, Film, RotateCcw,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
@@ -26,6 +26,7 @@ const NAV = [
   { to: '/admin/instagram',     label: 'Instagram',     icon: Instagram },
   { to: '/admin/blog',          label: 'Blog',          icon: BookOpen },
   { to: '/admin/faqs',          label: 'FAQs',          icon: HelpCircle },
+  { to: '/admin/return-requests', label: 'Returns',      icon: RotateCcw,      badge: 'returns' },
   { to: '/admin/messages',      label: 'Messages',      icon: MessageSquare,   badge: 'messages' },
   { to: '/admin/site-settings', label: 'Settings',      icon: Settings },
 ]
@@ -35,15 +36,17 @@ function useBadges() {
   return useQuery({
     queryKey: ['admin-badges'],
     queryFn: async () => {
-      const [msgs, custom, orders] = await Promise.all([
+      const [msgs, custom, orders, returns] = await Promise.all([
         supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
         supabase.from('custom_order_requests').select('id', { count: 'exact', head: true }).eq('status', 'new'),
         supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('return_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ])
       return {
         messages: msgs.count ?? 0,
         custom:   custom.count ?? 0,
         orders:   orders.count ?? 0,
+        returns:  returns.count ?? 0,
       }
     },
     refetchInterval: 60_000,

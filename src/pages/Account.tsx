@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useOrders } from '@/hooks/useOrders'
 import { formatPrice } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import { User, Package, LogOut } from 'lucide-react'
+import { User, Package, LogOut, MapPin } from 'lucide-react'
 import SEOHead from '@/components/common/SEOHead'
 
 export default function Account() {
@@ -41,7 +41,7 @@ export default function Account() {
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
               <div className="bg-background rounded-xl p-4">
                 <p className="text-muted-foreground text-xs">Total Orders</p>
                 <p className="text-2xl font-bold mt-1">{orders.length}</p>
@@ -50,6 +50,14 @@ export default function Account() {
                 <p className="text-muted-foreground text-xs">Total Spent</p>
                 <p className="text-2xl font-bold mt-1">{formatPrice(orders.reduce((s, o) => s + o.total_amount, 0))}</p>
               </div>
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              <Link to="/my-orders" className="flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                <Package className="w-4 h-4" /> My Orders
+              </Link>
+              <Link to="/account/addresses" className="flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                <MapPin className="w-4 h-4" /> Saved Addresses
+              </Link>
             </div>
           </div>
         )}
@@ -70,7 +78,7 @@ export default function Account() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-primary">{formatPrice(order.total_amount)}</p>
-                  <Link to={`/order-confirmation?order_id=${order.id}`} className="text-xs text-primary hover:underline">View →</Link>
+                  <Link to={`/my-orders/${order.id}`} className="text-xs text-primary hover:underline">View →</Link>
                 </div>
               </div>
             ))}

@@ -124,7 +124,10 @@ export default function Footer() {
 
         {/* ── Bottom bar ── */}
         <div className="py-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-[11px] text-white/40">
-          <p>© {new Date().getFullYear()} Meena Rajwada. All rights reserved.</p>
+          <div>
+            <p>© {new Date().getFullYear()} Meena Rajwada. All rights reserved.</p>
+            <p className="text-[10px] text-white/25 mt-0.5">Designed &amp; Developed by <span className="text-white/40 font-medium">Zoptavi</span></p>
+          </div>
           <div className="flex gap-5">
             {[['Terms', '/terms'], ['Returns & Refunds', '/return-policy'], ['Shipping', '/shipping-policy']].map(([label, href]) => (
               <Link key={href} to={href} className="hover:text-gold transition-colors">{label}</Link>

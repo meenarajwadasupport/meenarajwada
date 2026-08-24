@@ -32,6 +32,10 @@ import ShippingPolicy from '@/pages/ShippingPolicy'
 import ReturnPolicy from '@/pages/ReturnPolicy'
 import Terms from '@/pages/Terms'
 import NotFound from '@/pages/NotFound'
+import SalePage from '@/pages/SalePage'
+import ViewOrderPage from '@/pages/ViewOrderPage'
+import AddressesPage from '@/pages/AddressesPage'
+import PrivacyPolicy from '@/pages/PrivacyPolicy'
 
 // Admin Pages
 import AdminLayout from '@/pages/admin/AdminLayout'
@@ -53,6 +57,7 @@ import AdminCollections from '@/pages/admin/AdminCollections'
 import AdminCustomers from '@/pages/admin/AdminCustomers'
 import AdminNavMenu from '@/pages/admin/AdminNavMenu'
 import AdminVideoToGif from '@/pages/admin/AdminVideoToGif'
+import AdminReturnRequests from '@/pages/admin/AdminReturnRequests'
 
 export default function App() {
   return (
@@ -86,8 +91,12 @@ export default function App() {
                 <Route path="shipping-policy" element={<ShippingPolicy />} />
                 <Route path="return-policy" element={<ReturnPolicy />} />
                 <Route path="terms" element={<Terms />} />
+                <Route path="sale" element={<SalePage />} />
+                <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                <Route path="my-orders/:orderId" element={<ProtectedRoute><ViewOrderPage /></ProtectedRoute>} />
                 <Route path="account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+                <Route path="account/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
               </Route>
 
               {/* Admin routes */}
@@ -110,6 +119,7 @@ export default function App() {
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="nav-menu" element={<AdminNavMenu />} />
                 <Route path="video-to-gif" element={<AdminVideoToGif />} />
+                <Route path="return-requests" element={<AdminReturnRequests />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

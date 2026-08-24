@@ -253,9 +253,21 @@ export default function AdminOrders() {
                         className="w-28 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary bg-white transition-colors"
                       />
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const tid = trackingInputs[order.id]
-                          if (tid) updateOrder.mutate({ id: order.id, tracking_id: tid, status: 'dispatched' })
+                          if (!tid) { toast.error('Enter a tracking ID first'); return }
+                          updateOrder.mutate({ id: order.id, tracking_id: tid, status: 'dispatched' })
+                          // Auto-send dispatch email with PDF invoice
+                          try {
+                            const res = await fetch('/api/send-dispatch-email', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ order_id: order.id }),
+                            })
+                            if (res.ok) toast.success('Dispatch email sent to customer!')
+                          } catch {
+                            // silent — order is still dispatched
+                          }
                         }}
                         disabled={updateOrder.isPending}
                         className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors whitespace-nowrap disabled:opacity-60 inline-flex items-center gap-1.5"
